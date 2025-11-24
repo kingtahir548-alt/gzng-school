@@ -100,14 +100,15 @@
         const LOGO_BASE64 = ""; 
         const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png';
         const API_URL = 'https://script.google.com/macros/s/AKfycbzBU_aPa1OnUPKiZ5XX0yK9b_tTl2UjGCr4-JzC6fqHfJvJ9OWQcVlnYur1FPgDpBt18A/exec';
-        const STORAGE_KEY = 'gzng-final-v28-desktop-fix';
+        const STORAGE_KEY = 'gzng-final-v29-lesson-number';
 
         let state = {
             currentView: 'teacher', activities: [], isAdminAuthenticated: false, adminPassword: '', 
             showMonthModal: false, showReportModal: false, showSchedule: false, reportScale: 1, 
             viewDay: 'شەممە', isOnline: true, filterDate: new Date().toISOString().slice(0, 7), 
             login: { username: '', password: '' },
-            form: { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonTime: '', date: new Date().toISOString().split('T')[0] },
+            // گۆڕانکاری لێرە: lessonTime گۆڕدرا بۆ lessonNumber
+            form: { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] },
             report: { teacherName: '', activityName: '', date: new Date().toISOString().split('T')[0], orientation: 'landscape', showTeacher: true, images: [null, null, null, null], imgSettings: Array(4).fill().map(() => ({zoom: 1, x: 50, y: 50})) }
         };
 
@@ -189,7 +190,14 @@
         }
 
         async function handleSubmit() {
-            if (!validateForm()) return;
+            // گۆڕانکاری لێرە: دڵنیابوون لە هەبوونی ژمارەی دەرس
+            if (!validateForm() || !state.form.lessonNumber) {
+                 if (!state.form.lessonNumber) document.getElementById('lessonNumber').classList.add('input-error');
+                 return;
+            } else {
+                 document.getElementById('lessonNumber').classList.remove('input-error');
+            }
+
             document.getElementById('loadingOverlay').classList.remove('hidden');
             const newActivity = { action: 'submit', id: Date.now(), ...state.form };
             const tempState = [...state.activities];
@@ -198,7 +206,11 @@
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(newActivity) });
                 const result = await response.json();
-                if (result.result === "success") { showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonTime: '', date: new Date().toISOString().split('T')[0] }; updateStatus('online'); } 
+                if (result.result === "success") { showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
+                    // پاککردنەوەی فۆڕم
+                    state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] }; 
+                    updateStatus('online'); 
+                } 
                 else if (result.result === "conflict") { state.activities = tempState; alert(`⚠️ ئاگاداری!\n\nلەم کاتەدا مامۆستا (${result.teacher}) چالاکی هەیە.`); localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities)); } 
                 else { state.activities = tempState; alert("هەڵە لە سێرڤەر."); }
             } catch (e) { alert("کێشە لە ئینتەرنێت. داتا لەناو مۆبایل هەڵگیرا."); updateStatus('offline'); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); render(); }
@@ -254,7 +266,9 @@
         
         function validateForm() { 
             let valid = true; 
-            ['teacherName', 'subject', 'activityName'].forEach(id => { const el = document.getElementById(id); if(!state.form[id]) { if(el) el.classList.add('input-error'); valid = false; } else if(el) el.classList.remove('input-error'); }); 
+            ['teacherName', 'subject', 'activityName', 'dayOfWeek'].forEach(id => { const el = document.getElementById(id); if(!state.form[id] || state.form[id] === '') { if(el) el.classList.add('input-error'); valid = false; } else if(el) el.classList.remove('input-error'); }); 
+            // دڵنیابوون لە lessonNumber
+            if(!state.form.lessonNumber || state.form.lessonNumber === '') { document.getElementById('lessonNumber').classList.add('input-error'); valid = false; } else { document.getElementById('lessonNumber').classList.remove('input-error'); }
             return valid; 
         }
 
@@ -323,10 +337,10 @@
 
         function renderTeacherView() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
+            const lessons = ['1', '2', '3', '4', '5', '6']; // دەرسەکان
             if (!state.viewDay) state.viewDay = 'شەممە';
             const dailyActivities = state.activities.filter(a => a.dayOfWeek === state.viewDay);
             
-            // Layout changes here: Using Grid for Desktop
             return `
             <div class="w-full max-w-6xl mx-auto px-4 pb-20">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -334,10 +348,33 @@
                     <div class="bg-white rounded-2xl shadow-sm p-5 md:p-8 border border-gray-100 h-fit">
                         <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">تۆمارکردنی چالاکی نوێ</h3>
                         <div class="space-y-4">
-                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">ناوی مامۆستا</label><input type="text" id="teacherName" value="${state.form.teacherName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold placeholder-gray-400" placeholder="ناوی خۆت بنووسە..."></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="space-y-1"><label class="text-sm font-bold text-gray-600">بابەت</label><input type="text" id="subject" value="${state.form.subject}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="بیرکاری..."></div><div class="space-y-1"><label class="text-sm font-bold text-gray-600">ڕۆژ</label><select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold"><option value="">هەڵبژێرە...</option>${days.map(d => `<option value="${d}" ${state.form.dayOfWeek === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div></div>
-                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">جۆری چالاکی</label><input type="text" id="activityName" value="${state.form.activityName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="وانەی نموونەیی..."></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="space-y-1"><label class="text-sm font-bold text-gray-600">کات</label><input type="text" id="lessonTime" value="${state.form.lessonTime}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold" placeholder="10:30"></div><div class="space-y-1"><label class="text-sm font-bold text-gray-600">بەروار</label><input type="date" id="date" value="${state.form.date}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold font-mono"></div></div>
+                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">ناوی مامۆستا</label><input type="text" id="teacherName" oninput="state.form.teacherName = this.value" value="${state.form.teacherName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold placeholder-gray-400" placeholder="ناوی خۆت بنووسە..."></div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-sm font-bold text-gray-600">ڕۆژ</label>
+                                    <select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold">
+                                        <option value="">هەڵبژێرە...</option>
+                                        ${days.map(d => `<option value="${d}" ${state.form.dayOfWeek === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-sm font-bold text-gray-600">ژمارەی دەرس (١ - ٦)</label>
+                                    <select id="lessonNumber" onchange="state.form.lessonNumber = this.value" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold">
+                                        <option value="">هەڵبژێرە...</option>
+                                        ${lessons.map(l => `<option value="${l}" ${state.form.lessonNumber === l ? 'selected' : ''}>${l}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">بابەت</label><input type="text" id="subject" oninput="state.form.subject = this.value" value="${state.form.subject}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="بیرکاری..."></div>
+                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">جۆری چالاکی</label><input type="text" id="activityName" oninput="state.form.activityName = this.value" value="${state.form.activityName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="وانەی نموونەیی..."></div>
+                            
+                            <div class="space-y-1">
+                                <label class="text-sm font-bold text-gray-600">بەروار</label>
+                                <input type="date" id="date" oninput="state.form.date = this.value" value="${state.form.date}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold font-mono">
+                            </div>
+
                             <button onclick="handleSubmit()" class="w-full bg-gradient-to-l from-blue-600 to-blue-700 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all text-lg mt-4">تۆمارکردن</button>
                         </div>
                     </div>
@@ -345,7 +382,7 @@
                     <div class="bg-gray-50 md:bg-white rounded-2xl md:shadow-sm md:p-8 md:border md:border-gray-100">
                         <h3 class="text-center font-bold text-gray-800 mb-4 text-lg hidden md:block border-b pb-2">خشتەی چالاکیەکان</h3>
                         <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2" style="-webkit-overflow-scrolling: touch;">${days.map(day => `<button onclick="state.viewDay='${day}'; render()" class="flex-shrink-0 px-5 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${state.viewDay === day ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}">${day}</button>`).join('')}</div>
-                        <div class="space-y-3 min-h-[200px] overflow-y-auto max-h-[500px] pr-1">${dailyActivities.length === 0 ? `<div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-300"><p class="text-gray-400 font-bold">هیچ چالاکیەک بۆ ${state.viewDay} نییە</p></div>` : dailyActivities.map(act => `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm flex-shrink-0">${act.lessonTime || '??'}</div><div><h4 class="font-bold text-gray-800 text-sm">${act.teacherName}</h4><p class="text-xs text-gray-500 font-bold mt-0.5">${act.subject} - ${act.activityName}</p></div></div></div>`).join('')}</div>
+                        <div class="space-y-3 min-h-[200px] overflow-y-auto max-h-[500px] pr-1">${dailyActivities.length === 0 ? `<div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-300"><p class="text-gray-400 font-bold">هیچ چالاکیەک بۆ ${state.viewDay} نییە</p></div>` : dailyActivities.map(act => `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm flex-shrink-0">${act.lessonNumber || '??'}</div><div><h4 class="font-bold text-gray-800 text-sm">${act.teacherName}</h4><p class="text-xs text-gray-500 font-bold mt-0.5">${act.subject} - ${act.activityName}</p></div></div></div>`).join('')}</div>
                     </div>
 
                 </div>
@@ -368,7 +405,7 @@
                 return dateA.localeCompare(dateB); 
             });
 
-            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/90 z-50 overflow-y-auto py-4 md:py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-3 md:p-4 rounded-xl shadow-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print mx-4"><div class="flex items-center gap-4 w-full md:w-auto justify-between"><h3 class="font-bold text-lg text-gray-800">خشتەی مانگ:</h3><input type="month" value="${state.filterDate}" onchange="state.filterDate = this.value; render()" class="border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold bg-gray-50"></div><div class="flex gap-2 w-full md:w-auto"><button id="month-dl-btn" onclick="downloadElementAsImage('monthly-table-content', 'Monthly_Report.jpg')" class="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-orange-600 flex-1 md:flex-none justify-center flex">دابەزاندن (JPG)</button><button onclick="state.showMonthModal=false; render()" class="bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-red-200">داخستن</button></div></div><div class="report-wrapper"><div id="monthly-table-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center border border-gray-100 p-1"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl md:text-3xl font-black mb-1">قوتابخانەی گزنگ</h1><h2 class="text-lg md:text-xl text-blue-600 font-bold">لیستی چالاکیەکانی مانگ</h2></div><div class="text-left text-sm text-gray-600"><p><strong>بەروار:</strong> ${state.filterDate}</p></div></div>${sorted.length === 0 ? `<div class="text-center text-gray-400 py-10 border-2 border-dashed rounded-xl bg-gray-50">هیچ چالاکیەک لەم مانگەدا نییە</div>` : `<div class="overflow-hidden rounded-lg border border-gray-200"><table class="report-table w-full"><thead><tr><th class="w-10 text-center">#</th><th>ناوی مامۆستا</th><th>ڕۆژ</th><th>بەروار</th><th>کات</th><th>بابەت</th><th>جۆری چالاکی</th></tr></thead><tbody class="text-sm">${sorted.map((a, i) => `<tr><td class="font-bold text-center text-gray-500">${i + 1}</td><td class="font-bold text-gray-800">${a.teacherName}</td><td>${a.dayOfWeek}</td><td>${parseDate(a.date)}</td><td>${a.lessonTime}</td><td>${a.subject}</td><td>${a.activityName}</td></tr>`).join('')}</tbody></table></div>`}<div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ژمارەی چالاکی: ${sorted.length}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
+            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/90 z-50 overflow-y-auto py-4 md:py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-3 md:p-4 rounded-xl shadow-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print mx-4"><div class="flex items-center gap-4 w-full md:w-auto justify-between"><h3 class="font-bold text-lg text-gray-800">خشتەی مانگ:</h3><input type="month" value="${state.filterDate}" onchange="state.filterDate = this.value; render()" class="border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold bg-gray-50"></div><div class="flex gap-2 w-full md:w-auto"><button id="month-dl-btn" onclick="downloadElementAsImage('monthly-table-content', 'Monthly_Report.jpg')" class="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-orange-600 flex-1 md:flex-none justify-center flex">دابەزاندن (JPG)</button><button onclick="state.showMonthModal=false; render()" class="bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-red-200">داخستن</button></div></div><div class="report-wrapper"><div id="monthly-table-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center border border-gray-100 p-1"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl md:text-3xl font-black mb-1">قوتابخانەی گزنگ</h1><h2 class="text-lg md:text-xl text-blue-600 font-bold">لیستی چالاکیەکانی مانگ</h2></div><div class="text-left text-sm text-gray-600"><p><strong>بەروار:</strong> ${state.filterDate}</p></div></div>${sorted.length === 0 ? `<div class="text-center text-gray-400 py-10 border-2 border-dashed rounded-xl bg-gray-50">هیچ چالاکیەک لەم مانگەدا نییە</div>` : `<div class="overflow-hidden rounded-lg border border-gray-200"><table class="report-table w-full"><thead><tr><th class="w-10 text-center">#</th><th>ناوی مامۆستا</th><th>ڕۆژ</th><th>بەروار</th><th>دەرس</th><th>بابەت</th><th>جۆری چالاکی</th></tr></thead><tbody class="text-sm">${sorted.map((a, i) => `<tr><td class="font-bold text-center text-gray-500">${i + 1}</td><td class="font-bold text-gray-800">${a.teacherName}</td><td>${a.dayOfWeek}</td><td>${parseDate(a.date)}</td><td>${a.lessonNumber}</td><td>${a.subject}</td><td>${a.activityName}</td></tr>`).join('')}</tbody></table></div>`}<div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ژمارەی چالاکی: ${sorted.length}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
         }
 
         function renderAdminView() { 
@@ -378,7 +415,7 @@
                 return dateA.localeCompare(dateB); 
             });
 
-            return `<div class="max-w-6xl mx-auto px-4 pb-20"><div class="grid grid-cols-2 gap-3 mb-6"><button onclick="state.showReportModal=true; render()" class="p-4 bg-white border border-purple-100 rounded-2xl shadow-sm hover:bg-purple-50 transition text-center"><div class="text-2xl mb-1">📸</div><div class="font-bold text-purple-600 text-sm">ڕاپۆرتی وێنەیی</div></button><button onclick="state.showMonthModal=true; render()" class="p-4 bg-white border border-blue-100 rounded-2xl shadow-sm hover:bg-blue-50 transition text-center"><div class="text-2xl mb-1">📅</div><div class="font-bold text-blue-600 text-sm">خشتەی مانگ</div></button></div><div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100"><div class="p-4 border-b bg-gray-50/50 flex justify-between items-center"><span class="font-bold text-gray-700 text-sm">هەموو چالاکیەکان</span><span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-lg text-xs font-bold">${sorted.length}</span></div><div class="divide-y divide-gray-50">${sorted.map(a => `<div class="p-4 flex justify-between items-start hover:bg-gray-50 transition"><div><div class="font-bold text-gray-800 text-sm mb-1">${a.teacherName}</div><div class="text-xs text-gray-500 font-bold">${a.dayOfWeek} | ${parseDate(a.date)} | ${a.lessonTime}</div><div class="text-xs text-blue-600 mt-1 font-bold">${a.subject} - ${a.activityName}</div></div><div class="flex gap-2"><button onclick="openReportFor(${a.id})" class="text-blue-500 bg-blue-50 p-2 rounded-lg hover:bg-blue-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button><button onclick="deleteActivity(${a.id})" class="text-red-500 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div></div>`).join('')}</div></div></div>`;
+            return `<div class="max-w-6xl mx-auto px-4 pb-20"><div class="grid grid-cols-2 gap-3 mb-6"><button onclick="state.showReportModal=true; render()" class="p-4 bg-white border border-purple-100 rounded-2xl shadow-sm hover:bg-purple-50 transition text-center"><div class="text-2xl mb-1">📸</div><div class="font-bold text-purple-600 text-sm">ڕاپۆرتی وێنەیی</div></button><button onclick="state.showMonthModal=true; render()" class="p-4 bg-white border border-blue-100 rounded-2xl shadow-sm hover:bg-blue-50 transition text-center"><div class="text-2xl mb-1">📅</div><div class="font-bold text-blue-600 text-sm">خشتەی مانگ</div></button></div><div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100"><div class="p-4 border-b bg-gray-50/50 flex justify-between items-center"><span class="font-bold text-gray-700 text-sm">هەموو چالاکیەکان</span><span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-lg text-xs font-bold">${sorted.length}</span></div><div class="divide-y divide-gray-50">${sorted.map(a => `<div class="p-4 flex justify-between items-start hover:bg-gray-50 transition"><div><div class="font-bold text-gray-800 text-sm mb-1">${a.teacherName}</div><div class="text-xs text-gray-500 font-bold">${a.dayOfWeek} | ${parseDate(a.date)} | د. ${a.lessonNumber}</div><div class="text-xs text-blue-600 mt-1 font-bold">${a.subject} - ${a.activityName}</div></div><div class="flex gap-2"><button onclick="openReportFor(${a.id})" class="text-blue-500 bg-blue-50 p-2 rounded-lg hover:bg-blue-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button><button onclick="deleteActivity(${a.id})" class="text-red-500 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div></div>`).join('')}</div></div></div>`;
         }
 
         function parseDate(dateStr) {
@@ -399,11 +436,28 @@
             
             attachEvents(); 
             if(state.showReportModal || state.showMonthModal) { setTimeout(calculateScale, 50); }
-            if(activeId && document.getElementById(activeId)) { const el = document.getElementById(activeId); el.focus(); if(el.value) el.setSelectionRange(el.value.length, el.value.length); }
+            if(activeId && document.getElementById(activeId)) { 
+                const el = document.getElementById(activeId); 
+                // تەنها بۆ input و select کاردەکات
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT') { 
+                    el.focus(); 
+                    if(el.value) el.setSelectionRange(el.value.length, el.value.length); 
+                }
+            }
         }
 
         function attachEvents() { 
-            ['username','password','teacherName','subject','activityName','dayOfWeek','lessonTime','date'].forEach(id => { const el = document.getElementById(id); if(el) { el.oninput = (e) => { if(id in state.form) state.form[id] = e.target.value; if(id in state.login) state.login[id] = e.target.value; }; } }); 
+            // گۆڕانکاری لێرە: لابردنی lessonTime و زیادکردنی lessonNumber بۆ چاودێریکردن
+            ['username','password','teacherName','subject','activityName','dayOfWeek','lessonNumber','date'].forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el && el.tagName === 'INPUT') { 
+                    el.oninput = (e) => { 
+                        if(id in state.form) state.form[id] = e.target.value; 
+                        if(id in state.login) state.login[id] = e.target.value; 
+                    }; 
+                }
+            }); 
+            // بۆ selectەکان onchange بەکارهێنراوە لەناو HTML
         }
 
         loadActivities();
