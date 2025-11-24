@@ -8,7 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #f3f4f6; overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+        /* لابردنی سنووری سکڕۆڵ بۆ ئەوەی لە کۆمپیوتەر ئاسایی بێت */
+        body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
         
         /* Responsive Header */
         .school-header { 
@@ -20,7 +21,7 @@
             box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2); 
         }
         @media (min-width: 768px) {
-            .school-header { border-bottom-left-radius: 3rem; border-bottom-right-radius: 3rem; padding-bottom: 3rem; }
+            .school-header { border-bottom-left-radius: 3rem; border-bottom-right-radius: 3rem; padding-bottom: 2rem; }
         }
 
         .input-field { transition: all 0.2s ease; border: 1px solid #e5e7eb; }
@@ -45,7 +46,7 @@
             direction: rtl; 
             text-align: right; 
             position: relative; 
-            transform-origin: top center; /* Important for scaling */
+            transform-origin: top center; 
         }
 
         .image-slot { background-color: #f8fafc; border: 2px dashed #cbd5e1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; }
@@ -65,6 +66,12 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Scrollbar styles for desktop */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
         @media print { 
             body * { visibility: hidden; } 
             #reportModal, #reportModal * { visibility: visible; } 
@@ -75,7 +82,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen pb-10 relative text-gray-800 bg-gray-50" onmouseup="stopDrag()" onmouseleave="stopDrag()" ontouchend="stopDrag()">
+<body class="min-h-screen pb-10 relative text-gray-800 bg-gray-50 overflow-y-auto" onmouseup="stopDrag()" onmouseleave="stopDrag()" ontouchend="stopDrag()">
     
     <div id="app" class="w-full"></div>
     
@@ -93,7 +100,7 @@
         const LOGO_BASE64 = ""; 
         const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png';
         const API_URL = 'https://script.google.com/macros/s/AKfycbzBU_aPa1OnUPKiZ5XX0yK9b_tTl2UjGCr4-JzC6fqHfJvJ9OWQcVlnYur1FPgDpBt18A/exec';
-        const STORAGE_KEY = 'gzng-final-v27-sorting-asc';
+        const STORAGE_KEY = 'gzng-final-v28-desktop-fix';
 
         let state = {
             currentView: 'teacher', activities: [], isAdminAuthenticated: false, adminPassword: '', 
@@ -152,15 +159,14 @@
         function calculateScale() {
             if (!state.showReportModal && !state.showMonthModal) return;
             const viewportWidth = window.innerWidth;
-            const wrapperPadding = 20; // کەمتر لە پێشوو
+            const wrapperPadding = 20; 
             const targetWidth = viewportWidth - wrapperPadding;
-            const a4WidthPx = 794; // 210mm in px at 96dpi approx
+            const a4WidthPx = 794; 
             
-            // ئەگەر شاشە بچووک بوو (مۆبایل)
             if (targetWidth < a4WidthPx) { 
                 state.reportScale = targetWidth / a4WidthPx; 
             } else { 
-                state.reportScale = 1; // لەسەر کۆمپیوتەر ١٠٠٪
+                state.reportScale = 1; 
             }
 
             const page = document.querySelector('.a4-page');
@@ -168,7 +174,6 @@
             
             if (page && wrapper) { 
                 page.style.transform = `scale(${state.reportScale})`; 
-                // بەرزییەکە دەستکاری دەکەین بۆ ئەوەی بۆشایی سپی زۆر نەمێنێتەوە
                 const scaledHeight = page.getBoundingClientRect().height;
                 wrapper.style.height = (scaledHeight + 50) + 'px';
             }
@@ -205,11 +210,9 @@
             const btn = document.activeElement;
             const txt = btn ? btn.innerText : '';
             if(btn) btn.innerText = '...';
-            // Reset transform for full res capture
             const originalTransform = el.style.transform;
             el.style.transform = 'none'; 
             
-            // Input fix for html2canvas
             const inputs = el.querySelectorAll('input');
             inputs.forEach(i => { const s = document.createElement('span'); s.innerText = i.value; s.className = 'print-text-temp font-bold text-gray-900 ' + i.className; s.style.fontSize = window.getComputedStyle(i).fontSize; s.style.display = 'block'; i.style.display = 'none'; i.parentNode.insertBefore(s, i); });
             
@@ -219,7 +222,7 @@
                     const l = document.createElement('a'); l.download = name.replace('.png', '.jpg'); l.href = url;
                     document.body.appendChild(l); l.click(); document.body.removeChild(l); URL.revokeObjectURL(url);
                     document.querySelectorAll('.print-text-temp').forEach(s => s.remove()); inputs.forEach(i => i.style.display = ''); 
-                    el.style.transform = originalTransform; // Restore scale
+                    el.style.transform = originalTransform; 
                     if(btn) btn.innerText = txt; 
                 }, 'image/jpeg', 0.9);
             }).catch(e => { alert("کێشە لە دروستکردنی وێنە"); el.style.transform = originalTransform; if(btn) btn.innerText = txt; });
@@ -278,7 +281,6 @@
 
         function openArchiveWithPassword() {
             var password = prompt("تکایە وشەی نهێنی (Password) بنووسە بۆ کردنەوەی ئەرشیف:");
-            // Simple check (Client side)
             if (password === "2526") {
                 window.open("https://gzng-archive.vercel.app/", "_blank");
             } else if (password !== null) {
@@ -286,12 +288,12 @@
             }
         }
 
-        // --- Render Functions (Responsive) ---
+        // --- Render Functions (Fixed Layout) ---
 
         function Header() { 
             return `
             <div class="school-header text-white py-6 px-4 mb-6 md:mb-8">
-                <div class="max-w-4xl mx-auto">
+                <div class="max-w-6xl mx-auto">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3 md:gap-5">
                             <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg p-2">
@@ -310,11 +312,11 @@
         
         function Navigation() { 
             return `
-            <div class="max-w-4xl mx-auto px-4 mb-6">
-                <div class="bg-white rounded-2xl p-2 flex gap-2 shadow-sm border border-gray-100 overflow-x-auto">
-                    <button onclick="state.currentView='teacher'; render()" class="nav-btn flex-1 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap px-4 ${state.currentView === 'teacher' ? 'active' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}">مامۆستا</button>
-                    <button onclick="state.currentView='admin'; render()" class="nav-btn flex-1 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap px-4 ${state.currentView === 'admin' ? 'active' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}">ئەدمین</button>
-                    <button onclick="openArchiveWithPassword()" class="nav-btn flex-1 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap px-4 bg-gray-50 text-gray-600 hover:bg-gray-100">📂 ئەرشیف</button>
+            <div class="max-w-6xl mx-auto px-4 mb-6">
+                <div class="bg-white rounded-2xl p-2 flex gap-2 shadow-sm border border-gray-100 overflow-x-auto justify-center">
+                    <button onclick="state.currentView='teacher'; render()" class="nav-btn w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap ${state.currentView === 'teacher' ? 'active' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}">مامۆستا</button>
+                    <button onclick="state.currentView='admin'; render()" class="nav-btn w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap ${state.currentView === 'admin' ? 'active' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}">ئەدمین</button>
+                    <button onclick="openArchiveWithPassword()" class="nav-btn w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap bg-gray-50 text-gray-600 hover:bg-gray-100">📂 ئەرشیف</button>
                 </div>
             </div>`; 
         }
@@ -323,21 +325,29 @@
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
             if (!state.viewDay) state.viewDay = 'شەممە';
             const dailyActivities = state.activities.filter(a => a.dayOfWeek === state.viewDay);
+            
+            // Layout changes here: Using Grid for Desktop
             return `
-            <div class="w-full max-w-lg mx-auto px-4 pb-20">
-                <div class="bg-white rounded-2xl shadow-sm p-5 md:p-8 border border-gray-100 mb-8">
-                    <div class="space-y-4">
-                        <div class="space-y-1"><label class="text-sm font-bold text-gray-600">ناوی مامۆستا</label><input type="text" id="teacherName" value="${state.form.teacherName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold placeholder-gray-400" placeholder="ناوی خۆت بنووسە..."></div>
-                        <div class="grid grid-cols-2 gap-4"><div class="space-y-1"><label class="text-sm font-bold text-gray-600">بابەت</label><input type="text" id="subject" value="${state.form.subject}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="بیرکاری..."></div><div class="space-y-1"><label class="text-sm font-bold text-gray-600">ڕۆژ</label><select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold"><option value="">هەڵبژێرە...</option>${days.map(d => `<option value="${d}" ${state.form.dayOfWeek === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div></div>
-                        <div class="space-y-1"><label class="text-sm font-bold text-gray-600">جۆری چالاکی</label><input type="text" id="activityName" value="${state.form.activityName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="وانەی نموونەیی..."></div>
-                        <div class="grid grid-cols-2 gap-4"><div class="space-y-1"><label class="text-sm font-bold text-gray-600">کات</label><input type="text" id="lessonTime" value="${state.form.lessonTime}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold" placeholder="10:30"></div><div class="space-y-1"><label class="text-sm font-bold text-gray-600">بەروار</label><input type="date" id="date" value="${state.form.date}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold font-mono"></div></div>
-                        <button onclick="handleSubmit()" class="w-full bg-gradient-to-l from-blue-600 to-blue-700 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all text-lg mt-4">تۆمارکردن</button>
+            <div class="w-full max-w-6xl mx-auto px-4 pb-20">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div class="bg-white rounded-2xl shadow-sm p-5 md:p-8 border border-gray-100 h-fit">
+                        <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">تۆمارکردنی چالاکی نوێ</h3>
+                        <div class="space-y-4">
+                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">ناوی مامۆستا</label><input type="text" id="teacherName" value="${state.form.teacherName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold placeholder-gray-400" placeholder="ناوی خۆت بنووسە..."></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="space-y-1"><label class="text-sm font-bold text-gray-600">بابەت</label><input type="text" id="subject" value="${state.form.subject}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="بیرکاری..."></div><div class="space-y-1"><label class="text-sm font-bold text-gray-600">ڕۆژ</label><select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold"><option value="">هەڵبژێرە...</option>${days.map(d => `<option value="${d}" ${state.form.dayOfWeek === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div></div>
+                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600">جۆری چالاکی</label><input type="text" id="activityName" value="${state.form.activityName}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-right text-gray-800 font-bold" placeholder="وانەی نموونەیی..."></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="space-y-1"><label class="text-sm font-bold text-gray-600">کات</label><input type="text" id="lessonTime" value="${state.form.lessonTime}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold" placeholder="10:30"></div><div class="space-y-1"><label class="text-sm font-bold text-gray-600">بەروار</label><input type="date" id="date" value="${state.form.date}" class="input-field w-full rounded-xl bg-gray-50 px-4 py-3 text-center text-gray-800 font-bold font-mono"></div></div>
+                            <button onclick="handleSubmit()" class="w-full bg-gradient-to-l from-blue-600 to-blue-700 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all text-lg mt-4">تۆمارکردن</button>
+                        </div>
                     </div>
-                </div>
-                <div class="border-t border-gray-200 pt-6">
-                    <h3 class="text-center font-bold text-gray-800 mb-4 text-lg">خشتەی چالاکیەکان</h3>
-                    <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2" style="-webkit-overflow-scrolling: touch;">${days.map(day => `<button onclick="state.viewDay='${day}'; render()" class="flex-shrink-0 px-5 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${state.viewDay === day ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}">${day}</button>`).join('')}</div>
-                    <div class="space-y-3 min-h-[200px]">${dailyActivities.length === 0 ? `<div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-300"><p class="text-gray-400 font-bold">هیچ چالاکیەک بۆ ${state.viewDay} نییە</p></div>` : dailyActivities.map(act => `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm flex-shrink-0">${act.lessonTime || '??'}</div><div><h4 class="font-bold text-gray-800 text-sm">${act.teacherName}</h4><p class="text-xs text-gray-500 font-bold mt-0.5">${act.subject} - ${act.activityName}</p></div></div></div>`).join('')}</div>
+
+                    <div class="bg-gray-50 md:bg-white rounded-2xl md:shadow-sm md:p-8 md:border md:border-gray-100">
+                        <h3 class="text-center font-bold text-gray-800 mb-4 text-lg hidden md:block border-b pb-2">خشتەی چالاکیەکان</h3>
+                        <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2" style="-webkit-overflow-scrolling: touch;">${days.map(day => `<button onclick="state.viewDay='${day}'; render()" class="flex-shrink-0 px-5 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${state.viewDay === day ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}">${day}</button>`).join('')}</div>
+                        <div class="space-y-3 min-h-[200px] overflow-y-auto max-h-[500px] pr-1">${dailyActivities.length === 0 ? `<div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-300"><p class="text-gray-400 font-bold">هیچ چالاکیەک بۆ ${state.viewDay} نییە</p></div>` : dailyActivities.map(act => `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm flex-shrink-0">${act.lessonTime || '??'}</div><div><h4 class="font-bold text-gray-800 text-sm">${act.teacherName}</h4><p class="text-xs text-gray-500 font-bold mt-0.5">${act.subject} - ${act.activityName}</p></div></div></div>`).join('')}</div>
+                    </div>
+
                 </div>
             </div>`;
         }
@@ -368,7 +378,7 @@
                 return dateA.localeCompare(dateB); 
             });
 
-            return `<div class="max-w-4xl mx-auto px-4 pb-20"><div class="grid grid-cols-2 gap-3 mb-6"><button onclick="state.showReportModal=true; render()" class="p-4 bg-white border border-purple-100 rounded-2xl shadow-sm hover:bg-purple-50 transition text-center"><div class="text-2xl mb-1">📸</div><div class="font-bold text-purple-600 text-sm">ڕاپۆرتی وێنەیی</div></button><button onclick="state.showMonthModal=true; render()" class="p-4 bg-white border border-blue-100 rounded-2xl shadow-sm hover:bg-blue-50 transition text-center"><div class="text-2xl mb-1">📅</div><div class="font-bold text-blue-600 text-sm">خشتەی مانگ</div></button></div><div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100"><div class="p-4 border-b bg-gray-50/50 flex justify-between items-center"><span class="font-bold text-gray-700 text-sm">هەموو چالاکیەکان</span><span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-lg text-xs font-bold">${sorted.length}</span></div><div class="divide-y divide-gray-50">${sorted.map(a => `<div class="p-4 flex justify-between items-start hover:bg-gray-50 transition"><div><div class="font-bold text-gray-800 text-sm mb-1">${a.teacherName}</div><div class="text-xs text-gray-500 font-bold">${a.dayOfWeek} | ${parseDate(a.date)} | ${a.lessonTime}</div><div class="text-xs text-blue-600 mt-1 font-bold">${a.subject} - ${a.activityName}</div></div><div class="flex gap-2"><button onclick="openReportFor(${a.id})" class="text-blue-500 bg-blue-50 p-2 rounded-lg hover:bg-blue-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button><button onclick="deleteActivity(${a.id})" class="text-red-500 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div></div>`).join('')}</div></div></div>`;
+            return `<div class="max-w-6xl mx-auto px-4 pb-20"><div class="grid grid-cols-2 gap-3 mb-6"><button onclick="state.showReportModal=true; render()" class="p-4 bg-white border border-purple-100 rounded-2xl shadow-sm hover:bg-purple-50 transition text-center"><div class="text-2xl mb-1">📸</div><div class="font-bold text-purple-600 text-sm">ڕاپۆرتی وێنەیی</div></button><button onclick="state.showMonthModal=true; render()" class="p-4 bg-white border border-blue-100 rounded-2xl shadow-sm hover:bg-blue-50 transition text-center"><div class="text-2xl mb-1">📅</div><div class="font-bold text-blue-600 text-sm">خشتەی مانگ</div></button></div><div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100"><div class="p-4 border-b bg-gray-50/50 flex justify-between items-center"><span class="font-bold text-gray-700 text-sm">هەموو چالاکیەکان</span><span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-lg text-xs font-bold">${sorted.length}</span></div><div class="divide-y divide-gray-50">${sorted.map(a => `<div class="p-4 flex justify-between items-start hover:bg-gray-50 transition"><div><div class="font-bold text-gray-800 text-sm mb-1">${a.teacherName}</div><div class="text-xs text-gray-500 font-bold">${a.dayOfWeek} | ${parseDate(a.date)} | ${a.lessonTime}</div><div class="text-xs text-blue-600 mt-1 font-bold">${a.subject} - ${a.activityName}</div></div><div class="flex gap-2"><button onclick="openReportFor(${a.id})" class="text-blue-500 bg-blue-50 p-2 rounded-lg hover:bg-blue-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button><button onclick="deleteActivity(${a.id})" class="text-red-500 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div></div>`).join('')}</div></div></div>`;
         }
 
         function parseDate(dateStr) {
@@ -396,7 +406,6 @@
             ['username','password','teacherName','subject','activityName','dayOfWeek','lessonTime','date'].forEach(id => { const el = document.getElementById(id); if(el) { el.oninput = (e) => { if(id in state.form) state.form[id] = e.target.value; if(id in state.login) state.login[id] = e.target.value; }; } }); 
         }
 
-        // Start
         loadActivities();
         window.addEventListener('online', () => updateStatus('online'));
         window.addEventListener('offline', () => updateStatus('offline'));
