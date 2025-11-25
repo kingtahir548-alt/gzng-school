@@ -15,21 +15,33 @@
             -webkit-tap-highlight-color: transparent; 
         }
 
-        /* --- Dark Mode Styles (Admin) --- */
-        body.admin-mode {
+        /* --- Dark Mode Styles --- */
+        body.dark-mode {
             background-color: #0f172a; /* Slate 900 */
             color: #f1f5f9;
         }
-        .admin-mode .input-field {
+        .dark-mode .input-field {
             background-color: #1e293b; /* Slate 800 */
             border-color: #334155;
             color: white;
         }
-        .admin-mode .input-field:focus {
+        .dark-mode .input-field:focus {
             border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
         }
-        .admin-mode .input-field::placeholder { color: #94a3b8; }
+        .dark-mode .input-field::placeholder { color: #94a3b8; }
+        
+        /* Specific tweaks for text in dark mode */
+        .dark-mode h3, .dark-mode h4, .dark-mode label {
+            color: #e2e8f0 !important;
+        }
+        .dark-mode .bg-white {
+            background-color: #1e293b !important; /* Card background in dark mode */
+            border-color: #334155 !important;
+        }
+        .dark-mode .text-gray-800 { color: #f1f5f9 !important; }
+        .dark-mode .text-gray-600 { color: #cbd5e1 !important; }
+        .dark-mode .text-gray-500 { color: #94a3b8 !important; }
 
         /* Dark Mode Cards */
         .admin-card {
@@ -53,7 +65,7 @@
             backdrop-filter: blur(5px);
             transition: all 0.5s ease;
         }
-        .admin-mode .school-header {
+        .dark-mode .school-header {
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%), url('school.jpg'); 
             border-bottom: 1px solid #334155;
         }
@@ -84,9 +96,9 @@
         .btn-white.active { background-color: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 
         /* Dark Mode Navigation Buttons */
-        .admin-mode .btn-white { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
-        .admin-mode .btn-white:hover { background-color: #334155 !important; color: #38bdf8 !important; border-color: #38bdf8; }
-        .admin-mode .btn-white.active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+        .dark-mode .btn-white { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+        .dark-mode .btn-white:hover { background-color: #334155 !important; color: #38bdf8 !important; border-color: #38bdf8; }
+        .dark-mode .btn-white.active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
 
         .btn-blue { background: linear-gradient(to left, #2563eb, #1d4ed8); color: white; transition: all 0.2s ease; }
         .btn-blue:hover { background: linear-gradient(to left, #1e40af, #1e3a8a) !important; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
@@ -95,6 +107,9 @@
         /* Report Responsiveness */
         .report-wrapper { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding-top: 20px; }
         .a4-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; position: relative; transform-origin: top center; color: black; }
+        .dark-mode .a4-page { color: black; } /* Print page always light/black text */
+        .dark-mode .a4-page h1, .dark-mode .a4-page h2, .dark-mode .a4-page h3, .dark-mode .a4-page p { color: black !important; }
+        .dark-mode .a4-page .bg-white { background-color: white !important; border-color: #e5e7eb !important; }
 
         .image-slot { background-color: #f8fafc; border: 2px dashed #cbd5e1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; }
         .ar-landscape { aspect-ratio: 16/9; }
@@ -150,16 +165,22 @@
             showMonthModal: false, showReportModal: false, showSchedule: false, reportScale: 1, 
             viewDay: 'شەممە', isOnline: true, filterDate: new Date().toISOString().slice(0, 7), 
             login: { username: '', password: '' },
+            theme: localStorage.getItem('gzng-theme') || 'light', // Load theme from storage
             form: { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] },
             report: { teacherName: '', activityName: '', date: new Date().toISOString().split('T')[0], orientation: 'landscape', showTeacher: true, images: [null, null, null, null], imgSettings: Array(4).fill().map(() => ({zoom: 1, x: 50, y: 50})) }
         };
 
         function getLessonName(activity) {
-            // Check both properties because of backend/frontend differences
             let val = activity.lessonNumber || activity.lessonTime;
             if (!val || val === 'undefined') return 'دیاری نەکراوە';
             const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم' };
             return map[val] || val;
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            localStorage.setItem('gzng-theme', state.theme);
+            render();
         }
 
         let drag = { active: false, idx: -1, startX: 0, startY: 0, initialX: 50, initialY: 50 };
@@ -240,12 +261,11 @@
 
             document.getElementById('loadingOverlay').classList.remove('hidden');
             
-            // FIX: Include BOTH lessonNumber and lessonTime to satisfy backend
             const newActivity = { 
                 action: 'submit', 
                 id: Date.now(), 
                 ...state.form,
-                lessonTime: state.form.lessonNumber // <--- CRITICAL FIX: Sending lessonNumber as lessonTime too
+                lessonTime: state.form.lessonNumber 
             };
 
             const tempState = [...state.activities];
@@ -342,6 +362,10 @@
         // --- Render Functions ---
 
         function Header() { 
+            // Button changes icon based on theme
+            const themeIcon = state.theme === 'light' ? '🌙' : '☀️';
+            const themeTitle = state.theme === 'light' ? 'دۆخی تاریک' : 'دۆخی ڕوون';
+            
             return `
             <div class="school-header text-white py-6 px-4 mb-6 md:mb-8 transition-all duration-500">
                 <div class="max-w-6xl mx-auto">
@@ -355,7 +379,10 @@
                                 <p class="text-blue-100 text-xs md:text-base drop-shadow font-medium opacity-90">سیستەمی چالاکیەکان</p>
                             </div>
                         </div>
-                        ${state.isAdminAuthenticated ? `<button onclick="handleLogout()" class="btn-white bg-white/20 hover:bg-white/30 px-3 py-1.5 md:px-5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition backdrop-blur-sm active:scale-95">دەرچوون</button>` : ''}
+                        <div class="flex items-center gap-2">
+                             <button onclick="toggleTheme()" title="${themeTitle}" class="bg-white/20 hover:bg-white/30 w-10 h-10 flex items-center justify-center rounded-xl text-lg backdrop-blur-sm active:scale-95 transition-all border border-white/10 shadow-lg">${themeIcon}</button>
+                            ${state.isAdminAuthenticated ? `<button onclick="handleLogout()" class="btn-white bg-white/20 hover:bg-white/30 px-3 py-1.5 md:px-5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition backdrop-blur-sm active:scale-95">دەرچوون</button>` : ''}
+                        </div>
                     </div>
                 </div>
             </div>`; 
@@ -364,7 +391,7 @@
         function Navigation() { 
             return `
             <div class="max-w-6xl mx-auto px-4 mb-6">
-                <div class="bg-white rounded-2xl p-2 flex gap-2 shadow-sm border border-gray-100 overflow-x-auto justify-center sticky top-24 z-30 transition-colors duration-500 ${state.currentView === 'admin' ? '!bg-slate-800 !border-slate-700' : ''}">
+                <div class="bg-white rounded-2xl p-2 flex gap-2 shadow-sm border border-gray-100 overflow-x-auto justify-center sticky top-24 z-30 transition-colors duration-500 ${state.theme === 'dark' ? '!bg-slate-800 !border-slate-700' : ''}">
                     <button onclick="state.currentView='teacher'; render()" class="btn-white w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap ${state.currentView === 'teacher' ? 'active' : ''}">مامۆستا</button>
                     <button onclick="state.currentView='admin'; render()" class="btn-white w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap ${state.currentView === 'admin' ? 'active' : ''}">ئەدمین</button>
                     <button onclick="window.open('https://gzng-archive.vercel.app/', '_blank')" class="btn-white w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap">📂 ئەرشیف</button>
@@ -521,11 +548,11 @@
             const activeId = document.activeElement ? document.activeElement.id : null;
             const app = document.getElementById('app'); 
             
-            // Toggle Dark Mode Class on Body
-            if (state.currentView === 'admin') {
-                document.body.classList.add('admin-mode');
+            // Apply Theme Class
+            if (state.theme === 'dark') {
+                document.body.classList.add('dark-mode');
             } else {
-                document.body.classList.remove('admin-mode');
+                document.body.classList.remove('dark-mode');
             }
 
             let content = ''; 
