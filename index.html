@@ -17,25 +17,21 @@
 
         /* --- Dark Mode Styles (Admin) --- */
         body.admin-mode {
-            background-color: #0f172a; /* Slate 900 - Dark Background */
+            background-color: #0f172a; /* Slate 900 */
             color: #f1f5f9;
         }
-        
-        /* Dark Mode Input Fields */
         .admin-mode .input-field {
             background-color: #1e293b; /* Slate 800 */
             border-color: #334155;
             color: white;
         }
         .admin-mode .input-field:focus {
-            border-color: #38bdf8; /* Sky Blue */
+            border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
         }
-        .admin-mode .input-field::placeholder {
-            color: #94a3b8;
-        }
+        .admin-mode .input-field::placeholder { color: #94a3b8; }
 
-        /* Dark Mode Cards (Glassmorphism) */
+        /* Dark Mode Cards */
         .admin-card {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
@@ -57,22 +53,20 @@
             backdrop-filter: blur(5px);
             transition: all 0.5s ease;
         }
-        /* Make header slightly darker in admin mode */
         .admin-mode .school-header {
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%), url('school.jpg'); 
             border-bottom: 1px solid #334155;
         }
-
         @media (min-width: 768px) {
             .school-header { border-bottom-left-radius: 2.5rem; border-bottom-right-radius: 2.5rem; padding-bottom: 2rem; }
         }
 
-        /* Input Styling (Teacher Mode) */
+        /* Input Styling */
         .input-field { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e5e7eb; }
         .input-field:focus { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); outline: none; }
         .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* Admin Button Styling (Neon/Glow) */
+        /* Neon Button (Admin Login) */
         .btn-neon {
             background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             color: white;
@@ -81,18 +75,7 @@
             overflow: hidden;
             border: none;
         }
-        .btn-neon::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.5s;
-        }
-        .btn-neon:hover::before { left: 100%; }
-        .btn-neon:hover {
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
-            transform: translateY(-2px);
-        }
+        .btn-neon:hover { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); transform: translateY(-2px); }
 
         /* Standard Buttons */
         .btn-white { background-color: white; color: #4b5563; transition: all 0.2s ease; }
@@ -101,22 +84,9 @@
         .btn-white.active { background-color: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 
         /* Dark Mode Navigation Buttons */
-        .admin-mode .btn-white {
-            background-color: #1e293b; /* Slate 800 */
-            color: #cbd5e1; /* Slate 300 */
-            border: 1px solid #334155;
-        }
-        .admin-mode .btn-white:hover {
-            background-color: #334155 !important;
-            color: #38bdf8 !important; /* Sky Blue */
-            border-color: #38bdf8;
-        }
-        .admin-mode .btn-white.active {
-            background-color: #3b82f6 !important; /* Blue 500 */
-            color: white !important;
-            border-color: #3b82f6;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-        }
+        .admin-mode .btn-white { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+        .admin-mode .btn-white:hover { background-color: #334155 !important; color: #38bdf8 !important; border-color: #38bdf8; }
+        .admin-mode .btn-white.active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
 
         .btn-blue { background: linear-gradient(to left, #2563eb, #1d4ed8); color: white; transition: all 0.2s ease; }
         .btn-blue:hover { background: linear-gradient(to left, #1e40af, #1e3a8a) !important; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
@@ -185,6 +155,7 @@
         };
 
         function getLessonName(activity) {
+            // Check both properties because of backend/frontend differences
             let val = activity.lessonNumber || activity.lessonTime;
             if (!val || val === 'undefined') return 'دیاری نەکراوە';
             const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم' };
@@ -268,7 +239,15 @@
             }
 
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            const newActivity = { action: 'submit', id: Date.now(), ...state.form };
+            
+            // FIX: Include BOTH lessonNumber and lessonTime to satisfy backend
+            const newActivity = { 
+                action: 'submit', 
+                id: Date.now(), 
+                ...state.form,
+                lessonTime: state.form.lessonNumber // <--- CRITICAL FIX: Sending lessonNumber as lessonTime too
+            };
+
             const tempState = [...state.activities];
             state.activities.push(newActivity);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
