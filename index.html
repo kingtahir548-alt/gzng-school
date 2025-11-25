@@ -31,14 +31,8 @@
         }
         .dark-mode .input-field::placeholder { color: #94a3b8; }
         
-        /* Specific tweaks for text in dark mode */
-        .dark-mode h3, .dark-mode h4, .dark-mode label {
-            color: #e2e8f0 !important;
-        }
-        .dark-mode .bg-white {
-            background-color: #1e293b !important; /* Card background in dark mode */
-            border-color: #334155 !important;
-        }
+        .dark-mode h3, .dark-mode h4, .dark-mode label { color: #e2e8f0 !important; }
+        .dark-mode .bg-white { background-color: #1e293b !important; border-color: #334155 !important; }
         .dark-mode .text-gray-800 { color: #f1f5f9 !important; }
         .dark-mode .text-gray-600 { color: #cbd5e1 !important; }
         .dark-mode .text-gray-500 { color: #94a3b8 !important; }
@@ -78,15 +72,8 @@
         .input-field:focus { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); outline: none; }
         .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* Neon Button (Admin Login) */
-        .btn-neon {
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            color: white;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            border: none;
-        }
+        /* Neon Button */
+        .btn-neon { background: linear-gradient(90deg, #3b82f6, #8b5cf6); color: white; transition: all 0.3s ease; position: relative; overflow: hidden; border: none; }
         .btn-neon:hover { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); transform: translateY(-2px); }
 
         /* Standard Buttons */
@@ -104,12 +91,40 @@
         .btn-blue:hover { background: linear-gradient(to left, #1e40af, #1e3a8a) !important; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
         .btn-blue:active { transform: scale(0.95); }
 
-        /* Report Responsiveness */
+        /* --- Report Responsiveness & CRITICAL FIX FOR DARK MODE REPORT --- */
         .report-wrapper { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding-top: 20px; }
-        .a4-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; position: relative; transform-origin: top center; color: black; }
-        .dark-mode .a4-page { color: black; } /* Print page always light/black text */
-        .dark-mode .a4-page h1, .dark-mode .a4-page h2, .dark-mode .a4-page h3, .dark-mode .a4-page p { color: black !important; }
-        .dark-mode .a4-page .bg-white { background-color: white !important; border-color: #e5e7eb !important; }
+        
+        /* Force A4 Page to ALWAYS be Light (White paper, Black text) */
+        .a4-page { 
+            width: 210mm; min-height: 297mm; 
+            background: white !important; /* Force White */
+            padding: 15mm; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+            direction: rtl; text-align: right; 
+            position: relative; transform-origin: top center; 
+            color: #1f2937 !important; /* Force Dark Gray Text */
+        }
+        
+        /* Overwrite Dark Mode Styles specifically inside the Report */
+        .dark-mode .a4-page * {
+            color: #1f2937 !important; /* Ensure all text inside report is dark */
+            border-color: #e5e7eb;
+        }
+        .dark-mode .a4-page .bg-white {
+            background-color: white !important;
+        }
+        .dark-mode .a4-page input {
+            background-color: transparent !important;
+            color: #1f2937 !important;
+        }
+        .dark-mode .a4-page .report-table th {
+            background-color: #f1f5f9 !important;
+            color: #334155 !important;
+        }
+        .dark-mode .a4-page .report-table tr:nth-child(even) {
+            background-color: #f8fafc !important;
+        }
+        /* End of Report Fixes */
 
         .image-slot { background-color: #f8fafc; border: 2px dashed #cbd5e1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; }
         .ar-landscape { aspect-ratio: 16/9; }
