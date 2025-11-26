@@ -15,46 +15,140 @@
             -webkit-tap-highlight-color: transparent; 
         }
 
-        /* --- Dark Mode & Admin Mode Styles --- */
-        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
-        .dark-mode .input-field { background-color: #1e293b; border-color: #334155; color: white; }
-        .dark-mode .input-field:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        /* ============================
+           TEACHER DARK MODE
+           ============================ */
+        body.dark-mode {
+            background-color: #0f172a; 
+            color: #f1f5f9;
+        }
+        .dark-mode .input-field {
+            background-color: #1e293b; 
+            border-color: #334155;
+            color: white;
+        }
+        .dark-mode .input-field:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .dark-mode .input-field::placeholder { color: #94a3b8; }
+        .dark-mode h3, .dark-mode h4, .dark-mode label { color: #e2e8f0 !important; }
         .dark-mode .bg-white { background-color: #1e293b !important; border-color: #334155 !important; }
         .dark-mode .text-gray-800 { color: #f1f5f9 !important; }
-        .dark-mode .school-header { background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%), url('school.jpg'); border-bottom: 1px solid #334155; }
+        .dark-mode .text-gray-600 { color: #cbd5e1 !important; }
+        .dark-mode .text-gray-500 { color: #94a3b8 !important; }
+        
+        .dark-mode .school-header {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%), url('school.jpg'); 
+            border-bottom: 1px solid #334155;
+        }
+
         .dark-mode .btn-white { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+        .dark-mode .btn-white:hover { background-color: #334155 !important; color: #38bdf8 !important; border-color: #38bdf8; }
+        .dark-mode .btn-white.active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
 
-        body.admin-mode { background-color: #020617; color: #f1f5f9; }
-        .admin-mode .input-field { background-color: #1e293b; border-color: #334155; color: white; }
-        .admin-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(148, 163, 184, 0.1); }
-        .admin-mode .school-header { background: linear-gradient(135deg, rgba(2, 6, 23, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%), url('school.jpg'); }
+        /* ============================
+           ADMIN SPECIAL THEME
+           ============================ */
+        body.admin-mode {
+            background-color: #020617; 
+            color: #f1f5f9;
+        }
+        .admin-mode .input-field {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: white;
+        }
+        .admin-mode .input-field:focus {
+            border-color: #8b5cf6; 
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        }
+        .admin-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        .admin-mode .school-header {
+            background: linear-gradient(135deg, rgba(2, 6, 23, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%), url('school.jpg'); 
+            border-bottom: 1px solid #1e293b;
+        }
+        .admin-mode .btn-white {
+            background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155;
+        }
+        .admin-mode .btn-white:hover {
+            background-color: #334155 !important; color: #c084fc !important; border-color: #c084fc; 
+        }
+        .admin-mode .btn-white.active {
+            background-color: #7c3aed !important;
+            color: white !important;
+            border-color: #7c3aed;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+        }
 
-        /* Common Styles */
-        .school-header { background: linear-gradient(135deg, rgba(14, 165, 233, 0.98) 0%, rgba(30, 58, 138, 0.98) 100%), url('school.jpg'); background-size: cover; background-position: center; border-bottom-left-radius: 1.5rem; border-bottom-right-radius: 1.5rem; box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4); position: sticky; top: 0; z-index: 40; backdrop-filter: blur(5px); transition: all 0.5s ease; }
-        .input-field { transition: all 0.3s; border: 1px solid #e5e7eb; }
+        /* ============================
+           COMMON STYLES
+           ============================ */
+        .school-header { 
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.98) 0%, rgba(30, 58, 138, 0.98) 100%), url('school.jpg'); 
+            background-size: cover; 
+            background-position: center; 
+            border-bottom-left-radius: 1.5rem; 
+            border-bottom-right-radius: 1.5rem; 
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4);
+            position: sticky; top: 0; z-index: 40; backdrop-filter: blur(5px);
+            transition: all 0.5s ease;
+        }
+        @media (min-width: 768px) { .school-header { border-bottom-left-radius: 2.5rem; border-bottom-right-radius: 2.5rem; padding-bottom: 2rem; } }
+
+        .input-field { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e5e7eb; }
         .input-field:focus { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); outline: none; }
-        .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; animation: shake 0.5s both; }
+        .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        
         .btn-neon { background: linear-gradient(90deg, #3b82f6, #8b5cf6); color: white; transition: all 0.3s ease; position: relative; overflow: hidden; border: none; }
         .btn-neon:hover { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); transform: translateY(-2px); }
-        .btn-white { background-color: white; color: #4b5563; transition: all 0.2s ease; }
-        .btn-white.active { background-color: #2563eb !important; color: white !important; }
 
-        /* Report Styles (A4) */
-        .report-wrapper { width: 100%; display: flex; justify-content: center; padding-top: 20px; }
-        .a4-page { width: 210mm; min-height: 297mm; background: white !important; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; color: #1f2937 !important; }
-        .image-slot { background-color: #f8fafc; border: 2px dashed #cbd5e1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        .btn-white { background-color: white; color: #4b5563; transition: all 0.2s ease; }
+        .btn-white:hover { background-color: #dbeafe !important; color: #1d4ed8 !important; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-white:active { transform: scale(0.95); }
+        .btn-white.active { background-color: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+
+        /* Report Styles */
+        .report-wrapper { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding-top: 20px; }
+        .a4-page { width: 210mm; min-height: 297mm; background: white !important; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; position: relative; transform-origin: top center; color: #1f2937 !important; }
+        .a4-page * { color: #1f2937 !important; border-color: #e5e7eb; }
+        .a4-page .bg-white { background-color: white !important; }
+        .a4-page input { background-color: transparent !important; color: #1f2937 !important; }
+        .a4-page .report-table th { background-color: #f1f5f9 !important; color: #334155 !important; }
+        .a4-page .report-table tr:nth-child(even) { background-color: #f8fafc !important; }
+
+        .image-slot { background-color: #f8fafc; border: 2px dashed #cbd5e1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; }
         .ar-landscape { aspect-ratio: 16/9; }
         .ar-portrait { aspect-ratio: 3/4; }
         .img-controls { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; display: none; flex-direction: column; gap: 4px; z-index: 10; }
         .image-slot:hover .img-controls { display: flex; }
+        
         .report-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: right; font-size: 14px; }
-        .report-table th { background-color: #f1f5f9; color: #334155; }
+        .report-table th { background-color: #f1f5f9; color: #334155; font-weight: bold; }
         .report-table tr:nth-child(even) { background-color: #f8fafc; }
-
-        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } }
-        @media print { body * { visibility: hidden; } #reportModal, #reportModal * { visibility: visible; } #reportModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white; z-index: 9999; } .report-wrapper { display: block; padding: 0; transform: none !important; } .a4-page { margin: 0; box-shadow: none; transform: none !important; } .no-print { display: none !important; } }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+        @media print { 
+            body * { visibility: hidden; } 
+            #reportModal, #reportModal * { visibility: visible; } 
+            #reportModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white; z-index: 9999; padding: 0; overflow: visible; } 
+            .report-wrapper { display: block; padding: 0; width: 100%; height: 100%; transform: none !important; }
+            .a4-page { margin: 0; box-shadow: none; transform: none !important; width: 210mm; height: 297mm; } 
+            .no-print { display: none !important; } 
+        }
     </style>
 </head>
 <body class="min-h-screen pb-10 relative text-gray-800 bg-gray-50 overflow-y-auto" onmouseup="stopDrag()" onmouseleave="stopDrag()" ontouchend="stopDrag()">
@@ -64,10 +158,10 @@
     <div id="statusBar" class="fixed top-4 right-4 z-50 px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600 shadow-md hidden transition-all duration-300"></div>
     <div id="loadingOverlay" class="hidden fixed inset-0 bg-white/95 z-[9999] flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
-        <p id="loadingText" class="text-gray-700 font-bold">تکایە چاوەڕێبە...</p>
+        <p id="loadingText" class="text-gray-700 font-bold">پەیوەست دەبێت...</p>
     </div>
     <div id="notification" class="hidden fixed top-5 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl z-[1000] text-center border border-green-100 flex items-center gap-3 min-w-[300px]">
-        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">✅</div>
+        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
         <div class="text-right"><h3 class="font-bold text-gray-800" id="notifTitle">تۆمارکرا!</h3><p id="notifText" class="text-sm text-gray-500">بە سەرکەوتوویی نێردرا.</p></div>
     </div>
 
@@ -75,16 +169,17 @@
         const LOGO_BASE64 = ""; 
         const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png';
         
-        // =============== بەستەری نوێکراوە ===============
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxdB2_NbcYQqffHs5UD3t9c8U3Tu59blpPd97XVyyoGTZ_2pin3PChz6RLYDIRbpK9v/exec'; 
-        // ==============================================
+        // =================================================================
+        // بەستەرە راستەقینەکەی تۆ
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxdB2_NbcYQqffHs5UD3t9c8U3Tu59blpPd97XVyyoGTZ_2pin3PChz6RLYDIRbpK9v/exec';
+        // =================================================================
 
-        const STORAGE_KEY = 'gzng-full-v40-data';
+        const STORAGE_KEY = 'gzng-full-v101-reset';
         const USER_KEY = 'gzng-user-session';
 
         let state = {
             currentView: 'auth', // دەستپێک
-            authMode: 'login', // login or register
+            authMode: 'login', 
             currentUser: JSON.parse(localStorage.getItem(USER_KEY)) || null,
             activities: [], 
             isAdminAuthenticated: false, 
@@ -102,11 +197,88 @@
             report: { teacherName: '', activityName: '', date: new Date().toISOString().split('T')[0], orientation: 'landscape', showTeacher: true, images: [null, null, null, null], imgSettings: Array(4).fill().map(() => ({zoom: 1, x: 50, y: 50})) }
         };
 
-        // --- Helper Function: Convert Digits ---
+        // Auto Login
+        if(state.currentUser) {
+            state.currentView = 'teacher';
+            state.form.teacherName = state.currentUser.teacherName;
+        }
+
         function convertToEnglishDigits(str) {
             if(!str) return "";
             const map = { '٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9', '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9' };
             return str.toString().replace(/[٠-٩۰-۹]/g, char => map[char] || char);
+        }
+
+        function getLessonName(activity) {
+            let val = activity.lessonNumber || activity.lessonTime;
+            if (!val || val === 'undefined') return 'دیاری نەکراوە';
+            const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم' };
+            return map[val] || val;
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            localStorage.setItem('gzng-theme', state.theme);
+            render();
+        }
+
+        let drag = { active: false, idx: -1, startX: 0, startY: 0, initialX: 50, initialY: 50 };
+        let rafId = null;
+
+        function startDrag(e, idx) { 
+            if (!state.report.images[idx] || ['INPUT', 'BUTTON', 'RANGE'].includes(e.target.tagName)) return; 
+            if (e.type === 'touchstart' && e.touches.length > 1) return;
+            e.preventDefault(); drag.active = true; drag.idx = idx; 
+            const pt = e.touches ? e.touches[0] : e;
+            drag.startX = pt.clientX; drag.startY = pt.clientY; 
+            drag.initialX = parseFloat(state.report.imgSettings[idx].x); 
+            drag.initialY = parseFloat(state.report.imgSettings[idx].y); 
+        }
+
+        function onMove(e) { 
+            if (!drag.active) return; 
+            e.preventDefault(); 
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const pt = e.touches ? e.touches[0] : e;
+                const sensitivity = 0.4 / state.reportScale; 
+                const dX = (drag.startX - pt.clientX) * sensitivity; 
+                const dY = (drag.startY - pt.clientY) * sensitivity; 
+                let nX = Math.min(100, Math.max(0, drag.initialX + dX)); 
+                let nY = Math.min(100, Math.max(0, drag.initialY + dY)); 
+                state.report.imgSettings[drag.idx].x = nX; 
+                state.report.imgSettings[drag.idx].y = nY; 
+                const img = document.getElementById(`rep-img-${drag.idx}`); 
+                if (img) img.style.objectPosition = `${nX}% ${nY}%`; 
+                const sX = document.getElementById(`slider-x-${drag.idx}`); 
+                if(sX) sX.value = nX;
+            });
+        }
+        function stopDrag() { drag.active = false; drag.idx = -1; if(rafId) cancelAnimationFrame(rafId); }
+
+        function calculateScale() {
+            if (!state.showReportModal && !state.showMonthModal) return;
+            const viewportWidth = window.innerWidth;
+            const wrapperPadding = 20; 
+            const targetWidth = viewportWidth - wrapperPadding;
+            const a4WidthPx = 794; 
+            if (targetWidth < a4WidthPx) { state.reportScale = targetWidth / a4WidthPx; } else { state.reportScale = 1; }
+            const page = document.querySelector('.a4-page');
+            const wrapper = document.querySelector('.report-wrapper');
+            if (page && wrapper) { 
+                page.style.transform = `scale(${state.reportScale})`; 
+                const scaledHeight = page.getBoundingClientRect().height;
+                wrapper.style.height = (scaledHeight + 50) + 'px';
+            }
+        }
+        window.addEventListener('resize', calculateScale);
+
+        async function loadActivities() {
+            if (localStorage.getItem(STORAGE_KEY)) { state.activities = JSON.parse(localStorage.getItem(STORAGE_KEY)); }
+            try {
+                const response = await fetch(API_URL);
+                if (response.ok) { const data = await response.json(); if (Array.isArray(data)) { state.activities = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); } }
+            } catch (error) {}
         }
 
         // --- AUTH FUNCTIONS ---
@@ -132,7 +304,7 @@
                 if(data.result === 'success') {
                     const userData = { username: userIn, teacherName: data.teacherName };
                     state.currentUser = userData;
-                    state.form.teacherName = data.teacherName; // Auto fill teacher name
+                    state.form.teacherName = data.teacherName; 
                     localStorage.setItem(USER_KEY, JSON.stringify(userData));
                     state.currentView = 'teacher';
                     loadActivities();
@@ -157,7 +329,7 @@
 
         async function handleAdminLogin() {
             let p = document.getElementById('admin-pass').value.trim();
-            p = convertToEnglishDigits(p); // Fix keyboard issue
+            p = convertToEnglishDigits(p); 
             
             document.getElementById('loadingOverlay').classList.remove('hidden');
             try {
@@ -166,7 +338,7 @@
                 if(data.result === 'success') {
                     state.isAdminAuthenticated = true;
                     state.adminPassword = p;
-                    state.currentView = 'admin'; // Go directly to admin
+                    state.currentView = 'admin'; 
                     render();
                 } else {
                     alert("پاسۆرد هەڵەیە");
@@ -175,81 +347,17 @@
             document.getElementById('loadingOverlay').classList.add('hidden');
         }
 
-        // --- MAIN LOGIC ---
-        function getLessonName(activity) {
-            let val = activity.lessonNumber || activity.lessonTime;
-            if (!val || val === 'undefined') return 'دیاری نەکراوە';
-            const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم' };
-            return map[val] || val;
-        }
-
-        function toggleTheme() {
-            state.theme = state.theme === 'light' ? 'dark' : 'light';
-            localStorage.setItem('gzng-theme', state.theme);
-            render();
-        }
-
-        // Drag & Drop for Report
-        let drag = { active: false, idx: -1, startX: 0, startY: 0, initialX: 50, initialY: 50 };
-        let rafId = null;
-        function startDrag(e, idx) { 
-            if (!state.report.images[idx] || ['INPUT', 'BUTTON', 'RANGE'].includes(e.target.tagName)) return; 
-            if (e.type === 'touchstart' && e.touches.length > 1) return;
-            e.preventDefault(); drag.active = true; drag.idx = idx; 
-            const pt = e.touches ? e.touches[0] : e;
-            drag.startX = pt.clientX; drag.startY = pt.clientY; 
-            drag.initialX = parseFloat(state.report.imgSettings[idx].x); 
-            drag.initialY = parseFloat(state.report.imgSettings[idx].y); 
-        }
-        function onMove(e) { 
-            if (!drag.active) return; 
-            e.preventDefault(); 
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(() => {
-                const pt = e.touches ? e.touches[0] : e;
-                const sensitivity = 0.4 / state.reportScale; 
-                const dX = (drag.startX - pt.clientX) * sensitivity; 
-                const dY = (drag.startY - pt.clientY) * sensitivity; 
-                let nX = Math.min(100, Math.max(0, drag.initialX + dX)); 
-                let nY = Math.min(100, Math.max(0, drag.initialY + dY)); 
-                state.report.imgSettings[drag.idx].x = nX; 
-                state.report.imgSettings[drag.idx].y = nY; 
-                const img = document.getElementById(`rep-img-${drag.idx}`); 
-                if (img) img.style.objectPosition = `${nX}% ${nY}%`; 
-                const sX = document.getElementById(`slider-x-${drag.idx}`); if(sX) sX.value = nX;
-            });
-        }
-        function stopDrag() { drag.active = false; drag.idx = -1; if(rafId) cancelAnimationFrame(rafId); }
-
-        function calculateScale() {
-            if (!state.showReportModal && !state.showMonthModal) return;
-            const viewportWidth = window.innerWidth;
-            const targetWidth = viewportWidth - 20;
-            const a4WidthPx = 794; 
-            state.reportScale = targetWidth < a4WidthPx ? targetWidth / a4WidthPx : 1;
-            const page = document.querySelector('.a4-page');
-            const wrapper = document.querySelector('.report-wrapper');
-            if (page && wrapper) { 
-                page.style.transform = `scale(${state.reportScale})`; 
-                wrapper.style.height = (page.getBoundingClientRect().height + 50) + 'px';
-            }
-        }
-        window.addEventListener('resize', calculateScale);
-
-        async function loadActivities() {
-            if (localStorage.getItem(STORAGE_KEY)) { state.activities = JSON.parse(localStorage.getItem(STORAGE_KEY)); }
-            try {
-                const response = await fetch(API_URL);
-                if (response.ok) { const data = await response.json(); if (Array.isArray(data)) { state.activities = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); } }
-            } catch (error) { console.log("Offline mode"); }
-        }
-
         async function handleSubmit() {
+            // Update teacher name if changed manually
+            const tInput = document.getElementById('teacherNameInput');
+            if(tInput) state.form.teacherName = tInput.value;
+
             if (!validateForm()) return;
             document.getElementById('loadingOverlay').classList.remove('hidden');
             
             const newActivity = { action: 'submit', id: Date.now(), ...state.form, lessonTime: state.form.lessonNumber };
-            state.activities.push(newActivity); // Optimistic UI
+            
+            state.activities.push(newActivity);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
             
             try {
@@ -257,11 +365,9 @@
                 const result = await response.json();
                 if (result.result === "success") { 
                     showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
-                    // Reset fields except teacher name
                     state.form.subject = ''; state.form.activityName = ''; 
                 } 
-                else if (result.result === "conflict") { alert(`⚠️ ئاگاداری!\n\nلەم کاتەدا مامۆستا (${result.teacher}) چالاکی هەیە.`); loadActivities(); } 
-                else { alert("هەڵە لە سێرڤەر."); }
+                else { loadActivities(); alert("هەڵە لە سێرڤەر."); }
             } catch (e) { alert("کێشە لە ئینتەرنێت."); } 
             
             document.getElementById('loadingOverlay').classList.add('hidden'); 
@@ -300,8 +406,9 @@
         function validateForm() { 
             let valid = true; 
             ['subject', 'activityName', 'dayOfWeek', 'lessonNumber'].forEach(id => { 
-                if(!state.form[id] || state.form[id] === '') { document.getElementById(id)?.classList.add('input-error'); valid = false; } 
-                else document.getElementById(id)?.classList.remove('input-error'); 
+                const el = document.getElementById(id);
+                if(!el || el.value === '') { el?.classList.add('input-error'); valid = false; } 
+                else el.classList.remove('input-error'); 
             }); 
             return valid; 
         }
@@ -311,13 +418,13 @@
         }
 
         async function deleteActivity(id) { 
-            if(confirm("دڵنیایت؟ دەسڕدرێتەوە!")) { 
+            if(confirm("دڵنیایت؟")) { 
                 document.getElementById('loadingOverlay').classList.remove('hidden');
                 try {
                     const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "delete", id: id, password: state.adminPassword }) });
                     const result = await response.json();
                     if (result.result === "success") { state.activities = state.activities.filter(a => a.id != id); localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities)); showNotification("سڕایەوە", ""); render(); } 
-                } catch (e) { alert("کێشە لە پەیوەندی."); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
+                } catch (e) { alert("کێشە"); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
             } 
         }
 
@@ -326,39 +433,39 @@
             if(act) { state.report.teacherName = act.teacherName; state.report.activityName = act.activityName; state.report.date = act.date; state.showReportModal = true; render(); }
         }
 
-        // --- RENDER FUNCTIONS (THE UI) ---
+        // --- UI RENDERING (Detailed) ---
 
-        // 1. Auth View (Login/Register)
         function renderAuth() {
             const isLogin = state.authMode === 'login';
             return `
             <div class="min-h-screen flex items-center justify-center px-4 bg-slate-100">
                 <div class="bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl text-center">
-                    <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center text-3xl shadow-lg text-white font-bold">🎓</div>
+                    <div class="w-24 h-24 bg-white rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg overflow-hidden border p-2">
+                        <img src="${LOGO_URL}" class="w-full h-full object-contain">
+                    </div>
                     <h2 class="text-2xl font-black text-gray-800 mb-6">${isLogin ? 'چوونەژوورەوە' : 'دروستکردنی هەژمار'}</h2>
-                    
                     <div class="flex bg-gray-100 p-1 rounded-xl mb-6">
                         <button onclick="state.authMode='login'; render()" class="flex-1 py-2 rounded-lg font-bold text-sm transition ${isLogin ? 'bg-white shadow text-blue-600' : 'text-gray-500'}">چوونەژوورەوە</button>
                         <button onclick="state.authMode='register'; render()" class="flex-1 py-2 rounded-lg font-bold text-sm transition ${!isLogin ? 'bg-white shadow text-blue-600' : 'text-gray-500'}">خۆ تۆمارکردن</button>
                     </div>
-
                     <div class="space-y-4">
                         ${!isLogin ? `<input type="text" id="auth-name" placeholder="ناوی سیانی (بۆ ناو ڕاپۆرت)" class="input-field w-full px-5 py-3 rounded-xl bg-gray-50 font-bold text-right">` : ''}
                         <input type="text" id="auth-user" placeholder="یوزەرنەیم (بە ئینگلیزی)" class="input-field w-full px-5 py-3 rounded-xl bg-gray-50 font-bold text-right" dir="ltr">
                         <input type="password" id="auth-pass" placeholder="وشەی نهێنی" class="input-field w-full px-5 py-3 rounded-xl bg-gray-50 font-bold text-right" dir="ltr">
                         <button onclick="handleAuth()" class="btn-neon w-full py-3 rounded-xl font-bold text-lg shadow-lg mt-2">${isLogin ? 'وەرە ژوورەوە' : 'تۆمارکردن'}</button>
                     </div>
-                    
                     ${isLogin ? `<p class="mt-6 text-sm text-gray-400 font-bold cursor-pointer hover:text-blue-500" onclick="state.currentView='adminLogin'; render()">چوونەژوورەوەی ئەدمین</p>` : ''}
                 </div>
             </div>`;
         }
 
-        // 2. Admin Login
         function renderAdminLogin() {
             return `
             <div class="min-h-screen flex items-center justify-center px-4 bg-slate-900">
                 <div class="bg-slate-800 w-full max-w-sm p-8 rounded-3xl shadow-2xl text-center border border-slate-700">
+                    <div class="w-20 h-20 bg-white/10 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg p-2 border border-white/20">
+                        <img src="${LOGO_URL}" class="w-full h-full object-contain">
+                    </div>
                     <h2 class="text-2xl font-black text-white mb-6">ئەدمین</h2>
                     <input type="password" id="admin-pass" placeholder="پاسۆردی ئەدمین" class="input-field w-full px-5 py-3 rounded-xl bg-slate-700 text-white font-bold text-center mb-4 border-none">
                     <button onclick="handleAdminLogin()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-500">چوونەژوورەوە</button>
@@ -367,7 +474,6 @@
             </div>`;
         }
 
-        // 3. Main Header
         function Header() { 
             const themeIcon = state.theme === 'light' ? '🌙' : '☀️';
             return `
@@ -375,10 +481,7 @@
                 <div class="max-w-6xl mx-auto flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg p-2"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div>
-                        <div>
-                            <h1 class="text-xl md:text-3xl font-black">قوتابخانەی گزنگ</h1>
-                            <p class="text-blue-100 text-xs font-bold mt-1">بەخێربێیت، ${state.currentUser ? state.currentUser.teacherName : 'ئەدمین'}</p>
-                        </div>
+                        <div><h1 class="text-xl md:text-3xl font-black">قوتابخانەی گزنگ</h1><p class="text-blue-100 text-xs font-bold mt-1">بەخێربێیت، ${state.currentUser ? state.currentUser.teacherName : 'ئەدمین'}</p></div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="toggleTheme()" class="bg-white/20 w-10 h-10 flex items-center justify-center rounded-xl text-lg backdrop-blur-sm">${themeIcon}</button>
@@ -388,7 +491,6 @@
             </div>`; 
         }
 
-        // 4. Teacher View (The main 700-line logic condensed)
         function renderTeacherView() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
             const lessons = ['وانەی یەکەم', 'وانەی دووەم', 'وانەی سێیەم', 'وانەی چوارەم', 'وانەی پێنجەم', 'وانەی شەشەم']; 
@@ -401,7 +503,10 @@
                     <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 h-fit">
                         <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2"><span class="text-blue-500 text-xl">+</span>تۆمارکردن</h3>
                         <div class="space-y-4">
-                            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-blue-800 font-bold text-center text-sm">مامۆستا: ${state.form.teacherName}</div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-500">ناوی مامۆستا</label>
+                                <input type="text" id="teacherNameInput" value="${state.form.teacherName}" oninput="state.form.teacherName = this.value" class="input-field w-full rounded-xl bg-blue-50/50 border-blue-100 px-3 py-3 font-bold text-right text-gray-800 shadow-sm">
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value" class="input-field w-full rounded-xl bg-gray-50 px-3 py-3 font-bold text-right text-sm"><option value="">ڕۆژ...</option>${days.map(d=>`<option value="${d}" ${state.form.dayOfWeek===d?'selected':''}>${d}</option>`).join('')}</select>
                                 <select id="lessonNumber" onchange="state.form.lessonNumber = this.value" class="input-field w-full rounded-xl bg-gray-50 px-3 py-3 font-bold text-center text-sm"><option value="">وانە...</option>${lessons.map(l=>`<option value="${l}" ${state.form.lessonNumber===l?'selected':''}>${l}</option>`).join('')}</select>
@@ -412,7 +517,6 @@
                             <button onclick="handleSubmit()" class="btn-neon w-full font-black py-4 rounded-xl shadow-lg mt-2 text-lg">تۆمارکردن</button>
                         </div>
                     </div>
-
                     <div class="bg-gray-50 md:bg-white rounded-2xl md:shadow-sm md:p-8 md:border md:border-gray-100">
                         <h3 class="text-center font-bold text-gray-800 mb-4 text-lg hidden md:block border-b pb-2">خشتەی چالاکیەکان</h3>
                         <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2">${days.map(d => `<button onclick="state.viewDay='${d}'; render()" class="flex-shrink-0 px-5 py-2 rounded-xl font-bold text-sm whitespace-nowrap btn-white ${state.viewDay === d ? 'active' : ''}">${d}</button>`).join('')}</div>
@@ -422,7 +526,6 @@
             </div>`;
         }
 
-        // 5. Admin View (Reports, Month, List, Delete)
         function renderAdminView() { 
             const sorted = [...state.activities].sort((a, b) => new Date(b.date) - new Date(a.date));
             return `
@@ -448,33 +551,27 @@
             </div>`;
         }
 
-        // 6. Report Modal (The Big One)
         function renderReportModal() {
-            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/90 z-50 overflow-y-auto py-4 md:py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-3 md:p-4 rounded-xl shadow-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print mx-4"><div class="flex items-center gap-4"><h3 class="font-bold text-lg">ڕێکخستن</h3><button onclick="state.report.orientation='landscape'; render()" class="px-3 py-1 bg-gray-100 rounded text-sm">Landscape</button><button onclick="state.report.orientation='portrait'; render()" class="px-3 py-1 bg-gray-100 rounded text-sm">Portrait</button></div><div class="flex gap-2"><button onclick="downloadElementAsImage('report-content', 'Activity_Report.jpg')" class="btn-blue px-6 py-2 rounded-xl font-bold text-white">دابەزاندن</button><button onclick="state.showReportModal=false; render()" class="bg-gray-200 px-4 py-2 rounded-xl font-bold">داخستن</button></div></div>
-            <div class="report-wrapper"><div id="report-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 border p-1 rounded-xl"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl font-black">قوتابخانەی گزنگ</h1><h2 class="text-lg text-blue-600 font-bold">ڕاپۆرتی چالاکی</h2></div><div class="text-left text-sm"><p><strong>بەروار:</strong> ${state.report.date}</p><p><strong>مامۆستا:</strong> ${state.report.teacherName}</p></div></div><div class="mb-6 text-center"><input type="text" value="${state.report.activityName}" oninput="state.report.activityName=this.value" class="text-2xl font-black text-center w-full bg-transparent outline-none"></div><div class="grid grid-cols-2 gap-4 flex-1">${state.report.images.map((img, i) => `<div class="relative group"><div class="image-slot w-full bg-gray-100 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 ${state.report.orientation==='landscape'?'ar-landscape':'ar-portrait'}" onmousedown="startDrag(event, ${i})" ontouchstart="startDrag(event, ${i})">${img ? `<img id="rep-img-${i}" src="${img}" class="w-full h-full object-cover pointer-events-none absolute left-0 top-0" style="transform: scale(${state.report.imgSettings[i].zoom}); object-position: ${state.report.imgSettings[i].x}% ${state.report.imgSettings[i].y}%">` : `<label class="cursor-pointer w-full h-full flex items-center justify-center text-gray-400 hover:text-blue-500"><span class="text-4xl">+</span><input type="file" accept="image/*" class="hidden" onchange="handleImage(this, ${i})"></label>`}</div>${img ? `<div class="img-controls rounded-b-xl"><input type="range" min="1" max="3" step="0.1" value="${state.report.imgSettings[i].zoom}" oninput="updateImg(${i}, 'zoom', this.value)" class="w-full h-1 bg-gray-500 rounded-lg cursor-pointer"><button onclick="state.report.images[${i}]=null; render()" class="bg-red-500 text-white text-xs w-full py-1 mt-1 rounded">سڕینەوە</button></div>` : ''}</div>`).join('')}</div><div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ئامادەکردنی: ${state.report.teacherName}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
+            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/95 z-50 overflow-y-auto py-10"><div class="max-w-[210mm] mx-auto"><div class="bg-white p-4 rounded-xl mb-4 flex justify-between no-print mx-4"><div class="flex items-center gap-4"><h3 class="font-bold text-lg">ڕێکخستن</h3><button onclick="state.report.orientation='landscape'; render()" class="px-3 py-1 bg-gray-100 rounded text-sm">Landscape</button><button onclick="state.report.orientation='portrait'; render()" class="px-3 py-1 bg-gray-100 rounded text-sm">Portrait</button></div><div class="flex gap-2"><button onclick="downloadElementAsImage('report-content', 'Activity_Report.jpg')" class="btn-blue px-6 py-2 rounded-xl font-bold text-white">دابەزاندن</button><button onclick="state.showReportModal=false; render()" class="bg-gray-200 px-4 py-2 rounded-xl font-bold">داخستن</button></div></div>
+            <div class="report-wrapper"><div id="report-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 border p-1 rounded-xl"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl font-black">قوتابخانەی گزنگ</h1><h2 class="text-lg text-blue-600 font-bold">ڕاپۆرتی چالاکی</h2></div><div class="text-left text-sm"><p><strong>بەروار:</strong> ${state.report.date}</p><p><strong>مامۆستا:</strong> <input type="text" value="${state.report.teacherName}" oninput="state.report.teacherName=this.value" class="bg-transparent border-none text-left w-32 font-bold text-gray-800 focus:outline-none focus:bg-gray-50 rounded px-1"></p></div></div><div class="mb-6 text-center"><input type="text" value="${state.report.activityName}" oninput="state.report.activityName=this.value" class="text-2xl font-black text-center w-full bg-transparent outline-none"></div><div class="grid grid-cols-2 gap-4 flex-1">${state.report.images.map((img, i) => `<div class="relative group"><div class="image-slot w-full bg-gray-100 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 ${state.report.orientation==='landscape'?'ar-landscape':'ar-portrait'}" onmousedown="startDrag(event, ${i})" ontouchstart="startDrag(event, ${i})">${img ? `<img id="rep-img-${i}" src="${img}" class="w-full h-full object-cover pointer-events-none absolute left-0 top-0" style="transform: scale(${state.report.imgSettings[i].zoom}); object-position: ${state.report.imgSettings[i].x}% ${state.report.imgSettings[i].y}%">` : `<label class="cursor-pointer w-full h-full flex items-center justify-center text-gray-400 hover:text-blue-500"><span class="text-4xl">+</span><input type="file" accept="image/*" class="hidden" onchange="handleImage(this, ${i})"></label>`}</div>${img ? `<div class="img-controls rounded-b-xl"><input type="range" min="1" max="3" step="0.1" value="${state.report.imgSettings[i].zoom}" oninput="updateImg(${i}, 'zoom', this.value)" class="w-full h-1 bg-gray-500 rounded-lg cursor-pointer"><button onclick="state.report.images[${i}]=null; render()" class="bg-red-500 text-white text-xs w-full py-1 mt-1 rounded">سڕینەوە</button></div>` : ''}</div>`).join('')}</div><div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ئامادەکردنی: ${state.report.teacherName}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
         }
 
-        // 7. Month Modal
         function renderMonthModal() {
             const monthlyActivities = state.activities.filter(a => a.date && String(a.date).includes(state.filterDate)).sort((a,b)=>a.date.localeCompare(b.date));
             return `<div id="reportModal" class="fixed inset-0 bg-gray-900/90 z-50 overflow-y-auto py-4 md:py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-3 md:p-4 rounded-xl shadow-lg mb-6 flex justify-between items-center no-print mx-4"><div class="flex gap-4"><h3 class="font-bold">خشتەی مانگ:</h3><input type="month" value="${state.filterDate}" onchange="state.filterDate=this.value;render()" class="border rounded px-2"></div><div class="flex gap-2"><button onclick="downloadElementAsImage('monthly-table', 'Month_Report.jpg')" class="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold">دابەزاندن</button><button onclick="state.showMonthModal=false; render()" class="bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold">داخستن</button></div></div><div class="report-wrapper"><div id="monthly-table" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 border p-1 rounded-xl"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl font-black">قوتابخانەی گزنگ</h1><h2 class="text-lg text-blue-600 font-bold">لیستی چالاکیەکانی مانگ</h2></div><div class="text-left text-sm"><p><strong>بەروار:</strong> ${state.filterDate}</p></div></div><table class="report-table w-full"><thead><tr><th>#</th><th>ناوی مامۆستا</th><th>ڕۆژ</th><th>بەروار</th><th>دەرس</th><th>بابەت</th><th>جۆری چالاکی</th></tr></thead><tbody>${monthlyActivities.map((a,i)=>`<tr><td>${i+1}</td><td>${a.teacherName}</td><td>${a.dayOfWeek}</td><td>${a.date}</td><td>${getLessonName(a)}</td><td>${a.subject}</td><td>${a.activityName}</td></tr>`).join('')}</tbody></table><div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ژمارەی چالاکی: ${monthlyActivities.length}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
         }
 
-        // --- MASTER RENDER ---
         function render() { 
             const app = document.getElementById('app'); 
             
-            // Check logged in user
             if(state.currentUser && state.currentView === 'auth') {
                 state.currentView = 'teacher';
             }
 
-            // CSS Classes
             document.body.classList.remove('dark-mode', 'admin-mode');
             if (state.currentView === 'admin') document.body.classList.add('admin-mode');
             else if (state.theme === 'dark') document.body.classList.add('dark-mode');
 
-            // Routing
             let content = '';
             if(state.showReportModal) content = renderReportModal();
             else if(state.showMonthModal) content = renderMonthModal();
@@ -487,11 +584,8 @@
             if(state.showReportModal || state.showMonthModal) setTimeout(calculateScale, 50);
         }
 
-        // Init
         loadActivities();
         render();
-
-        // Listeners
         window.addEventListener('online', () => document.getElementById('statusBar').classList.remove('hidden'));
         document.addEventListener('touchmove', function(e) { if(e.scale !== 1) { e.preventDefault(); } }, { passive: false });
     </script>
