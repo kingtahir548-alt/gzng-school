@@ -64,10 +64,10 @@
     </div>
 
     <script>
-        // !!! لێرە لینکە درێژەکەی Google Scriptـی خۆت دابنێ !!!
+        // !!! لێرە لینکەکەی خۆت دابنێ !!!
         const API_URL = 'https://script.google.com/macros/s/AKfycbzBU_aPa1OnUPKiZ5XX0yK9b_tTl2UjGCr4-JzC6fqHfJvJ9OWQcVlnYur1FPgDpBt18A/exec';
         const LOGO_URL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; 
-        const STORAGE_KEY = 'gzng-daily-final-v2';
+        const STORAGE_KEY = 'gzng-daily-final';
 
         let state = {
             currentView: 'teacher', activities: [], isAdminAuthenticated: false, adminPassword: '',
@@ -75,12 +75,6 @@
             form: { teacherName: '', subject: '', activityName: '', dayOfWeek: 'شەممە', lessonNumber: '', date: new Date().toISOString().split('T')[0] },
             report: { images: [null, null, null, null], settings: [{},{},{},{}] }
         };
-
-        // Convert ID (1,2,3) to Text (وانەی یەکەم...)
-        function getLessonLabel(val) {
-            const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم' };
-            return map[val] || val;
-        }
 
         async function loadActivities() {
             if(localStorage.getItem(STORAGE_KEY)) { state.activities = JSON.parse(localStorage.getItem(STORAGE_KEY)); render(); }
@@ -95,7 +89,7 @@
             if(!f.teacherName || !f.subject || !f.activityName || !f.lessonNumber) return alert("تکایە هەموو خانەکان پڕبکەوە");
             
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            const newAct = { id: Date.now(), ...f, lessonTime: f.lessonNumber }; 
+            const newAct = { id: Date.now(), ...f, lessonTime: f.lessonNumber }; // lessonNumber is text now
             
             state.activities.push(newAct);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
@@ -103,6 +97,7 @@
             try {
                 await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'submit', ...newAct }) });
                 alert("✅ تۆمارکرا!");
+                // Reset form but keep date and teacher name for convenience
                 state.form.subject = ''; state.form.activityName = ''; state.form.lessonNumber = '';
             } catch(e) { alert("کێشەی ئینتەرنێت (داتا لە مۆبایل سەیڤ کرا)"); }
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); render(); }
@@ -131,19 +126,19 @@
             const app = document.getElementById('app');
             if (state.showReportModal) app.innerHTML = renderReportModal();
             else if (state.currentView === 'admin') {
-                app.className = 'w-full admin-view'; 
+                app.className = 'w-full admin-view'; // Switch to Dark Mode
                 if (!state.isAdminAuthenticated) app.innerHTML = renderAdminLogin();
                 else app.innerHTML = renderAdminDashboard();
             } else {
-                app.className = 'w-full teacher-view'; 
+                app.className = 'w-full teacher-view'; // Switch to Light Mode
                 app.innerHTML = renderTeacherView();
             }
         }
 
-        // 1. TEACHER VIEW (RESTORED DROPDOWN)
+        // 1. TEACHER VIEW (CLEAN & ORIGINAL LAYOUT)
         function renderTeacherView() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
-            const lessonLabels = ['یەکەم', 'دووەم', 'سێیەم', 'چوارەم', 'پێنجەم', 'شەشەم'];
+            // Filter activities for the selected date
             const todayActs = state.activities.filter(a => a.date === state.form.date);
 
             return `
@@ -191,10 +186,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-gray-500 text-xs font-bold mb-1">وانە</label>
-                                    <select onchange="state.form.lessonNumber=this.value" class="teacher-input cursor-pointer text-center">
-                                        <option value="">دیاری بکە...</option>
-                                        ${lessonLabels.map((lbl, index) => `<option value="${index+1}" ${state.form.lessonNumber==(index+1)?'selected':''}>وانەی ${lbl}</option>`).join('')}
-                                    </select>
+                                    <input type="text" value="${state.form.lessonNumber}" oninput="state.form.lessonNumber=this.value" class="teacher-input text-center" placeholder="نم: وانەی یەکەم">
                                 </div>
                                 <div>
                                     <label class="block text-gray-500 text-xs font-bold mb-1">بابەت</label>
@@ -227,7 +219,7 @@
                                         <div class="text-sm text-gray-500">${a.subject} - ${a.activityName}</div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold mb-1">${getLessonLabel(a.lessonTime)}</div>
+                                        <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold mb-1">${a.lessonTime}</div>
                                     </div>
                                 </div>
                             `).join('')}
@@ -264,11 +256,13 @@
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
-        // 3. ADMIN DASHBOARD (VIP)
+        // 3. ADMIN DASHBOARD (VIP & SORTED)
         function renderAdminDashboard() {
             const sortedActivities = getSortedActivities();
             const total = state.activities.length;
             const teachersCount = new Set(state.activities.map(a=>a.teacherName)).size;
+            
+            // Top Teacher Logic
             const counts = {}; state.activities.forEach(a => counts[a.teacherName] = (counts[a.teacherName]||0)+1);
             const topTeacher = Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0] || "نییە";
 
@@ -331,7 +325,7 @@
                                         <tr class="hover:bg-white/5 transition">
                                             <td class="p-4 font-bold text-white">${a.teacherName}</td>
                                             <td class="p-4 text-gray-300">${a.subject}</td>
-                                            <td class="p-4 text-vip-gold font-bold">${getLessonLabel(a.lessonTime)}</td>
+                                            <td class="p-4 text-vip-gold font-bold">${a.lessonTime}</td>
                                             <td class="p-4 text-gray-400 font-mono">${a.date}</td>
                                             <td class="p-4 text-center">
                                                 <button onclick="deleteActivity(${a.id})" class="bg-red-500/10 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition">🗑️</button>
@@ -403,7 +397,7 @@
                 <table class="w-full border-collapse border border-gray-300 text-sm">
                     <thead class="bg-gray-100"><tr><th class="border p-2">#</th><th class="border p-2">مامۆستا</th><th class="border p-2">بابەت</th><th class="border p-2">وانە</th><th class="border p-2">بەروار</th></tr></thead>
                     <tbody>
-                        ${list.map((a,i)=>`<tr><td class="border p-2 text-center">${i+1}</td><td class="border p-2 font-bold">${a.teacherName}</td><td class="border p-2">${a.subject}</td><td class="border p-2 text-center">${getLessonLabel(a.lessonTime)}</td><td class="border p-2 text-center font-mono">${a.date}</td></tr>`).join('')}
+                        ${list.map((a,i)=>`<tr><td class="border p-2 text-center">${i+1}</td><td class="border p-2 font-bold">${a.teacherName}</td><td class="border p-2">${a.subject}</td><td class="border p-2 text-center">${a.lessonTime}</td><td class="border p-2 text-center font-mono">${a.date}</td></tr>`).join('')}
                     </tbody>
                 </table>
             </div>`;
