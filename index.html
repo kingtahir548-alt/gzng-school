@@ -12,32 +12,39 @@
             theme: {
                 extend: {
                     colors: {
-                        vip: {
-                            dark: '#0f172a',
-                            card: '#1e293b',
-                            gold: '#f59e0b',
-                            goldHover: '#d97706',
-                            text: '#f8fafc'
-                        }
+                        vip: { dark: '#0f172a', card: '#1e293b', gold: '#f59e0b', text: '#f8fafc' },
+                        school: { blue: '#2563eb', light: '#eff6ff', gray: '#f3f4f6' }
                     },
-                    fontFamily: {
-                        sans: ['Noto Sans Arabic', 'Rudaw', 'sans-serif'],
-                    }
+                    fontFamily: { sans: ['Noto Sans Arabic', 'Rudaw', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 10px; }
-        .glass-vip {
-            background: rgba(30, 41, 59, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(245, 158, 11, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        body { font-family: 'Noto Sans Arabic', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* --- STYLE FOR TEACHER VIEW (CLEAN & WHITE) --- */
+        .teacher-view { background-color: #f3f4f6; color: #1f2937; }
+        .teacher-input { 
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; 
+            background: white; color: #333; font-weight: bold; transition: 0.3s;
         }
+        .teacher-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); outline: none; }
+        .teacher-btn {
+            background: linear-gradient(to left, #2563eb, #1d4ed8); color: white;
+            padding: 12px; border-radius: 10px; font-weight: 900; width: 100%;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); transition: 0.2s;
+        }
+        .teacher-btn:active { transform: scale(0.98); }
+
+        /* --- STYLE FOR ADMIN VIEW (VIP DARK) --- */
+        .admin-view { background-color: #0f172a; color: #f8fafc; min-height: 100vh; }
+        .glass-vip {
+            background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px);
+            border: 1px solid rgba(245, 158, 11, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        /* PRINT STYLES */
         @media print {
             body * { visibility: hidden; }
             #reportModal, #reportModal * { visibility: visible; }
@@ -47,9 +54,9 @@
         }
     </style>
 </head>
-<body class="min-h-screen pb-10 bg-gray-100 text-gray-800">
+<body>
 
-    <div id="app" class="w-full"></div>
+    <div id="app" class="w-full min-h-screen"></div>
 
     <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/80 z-[9999] flex flex-col items-center justify-center backdrop-blur-sm">
         <div class="w-16 h-16 border-4 border-vip-gold border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -57,27 +64,24 @@
     </div>
 
     <script>
-        // !!! لێرە لینکە درێژەکەی Google Scriptـی خۆت دابنێ !!!
+        // !!! لێرە لینکەکەی خۆت دابنێ !!!
         const API_URL = 'https://script.google.com/macros/s/AKfycbzBU_aPa1OnUPKiZ5XX0yK9b_tTl2UjGCr4-JzC6fqHfJvJ9OWQcVlnYur1FPgDpBt18A/exec';
-        
-        // لێرە لینکی لۆگۆی قوتابخانە دابنێ
         const LOGO_URL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; 
-        const STORAGE_KEY = 'gzng-daily-vip';
+        const STORAGE_KEY = 'gzng-daily-final';
 
         let state = {
             currentView: 'teacher', activities: [], isAdminAuthenticated: false, adminPassword: '',
-            showReportModal: false, reportType: 'photo', reportData: {},
-            form: { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] },
+            showReportModal: false, reportType: 'photo',
+            form: { teacherName: '', subject: '', activityName: '', dayOfWeek: 'شەممە', lessonNumber: '', date: new Date().toISOString().split('T')[0] },
             report: { images: [null, null, null, null], settings: [{},{},{},{}] }
         };
 
-        // --- DATA HANDLING ---
         async function loadActivities() {
             if(localStorage.getItem(STORAGE_KEY)) { state.activities = JSON.parse(localStorage.getItem(STORAGE_KEY)); render(); }
             try {
                 const res = await fetch(API_URL);
                 if(res.ok) { const data = await res.json(); if(Array.isArray(data)){ state.activities = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); }}
-            } catch(e) { console.log("Offline mode"); }
+            } catch(e) { console.log("Offline"); }
         }
 
         async function handleSubmit() {
@@ -85,7 +89,7 @@
             if(!f.teacherName || !f.subject || !f.activityName || !f.lessonNumber) return alert("تکایە هەموو خانەکان پڕبکەوە");
             
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            const newAct = { id: Date.now(), ...f, lessonTime: f.lessonNumber };
+            const newAct = { id: Date.now(), ...f, lessonTime: f.lessonNumber }; // lessonNumber is text now
             
             state.activities.push(newAct);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
@@ -93,13 +97,14 @@
             try {
                 await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'submit', ...newAct }) });
                 alert("✅ تۆمارکرا!");
-                state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] };
+                // Reset form but keep date and teacher name for convenience
+                state.form.subject = ''; state.form.activityName = ''; state.form.lessonNumber = '';
             } catch(e) { alert("کێشەی ئینتەرنێت (داتا لە مۆبایل سەیڤ کرا)"); }
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); render(); }
         }
 
         async function deleteActivity(id) {
-            if(!confirm("دڵنیایت لە سڕینەوە؟")) return;
+            if(!confirm("دڵنیایت؟")) return;
             document.getElementById('loadingOverlay').classList.remove('hidden');
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id, password: state.adminPassword }) });
@@ -113,79 +118,109 @@
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
-        // --- HELPER: SORT BY DATE ---
         function getSortedActivities() {
-            return [...state.activities].sort((a, b) => {
-                return new Date(a.date) - new Date(b.date);
-            });
+            return [...state.activities].sort((a, b) => new Date(a.date) - new Date(b.date));
         }
 
         function render() {
             const app = document.getElementById('app');
-            let content = '';
-            if (state.showReportModal) content = renderReportModal();
+            if (state.showReportModal) app.innerHTML = renderReportModal();
             else if (state.currentView === 'admin') {
-                if (!state.isAdminAuthenticated) content = renderAdminLogin();
-                else content = renderAdminDashboard();
+                app.className = 'w-full admin-view'; // Switch to Dark Mode
+                if (!state.isAdminAuthenticated) app.innerHTML = renderAdminLogin();
+                else app.innerHTML = renderAdminDashboard();
             } else {
-                content = renderTeacherView();
+                app.className = 'w-full teacher-view'; // Switch to Light Mode
+                app.innerHTML = renderTeacherView();
             }
-            app.innerHTML = content;
         }
 
-        // 1. TEACHER VIEW
+        // 1. TEACHER VIEW (CLEAN & ORIGINAL LAYOUT)
         function renderTeacherView() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
+            // Filter activities for the selected date
             const todayActs = state.activities.filter(a => a.date === state.form.date);
 
             return `
-            <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl">
-                <div class="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg mb-6">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="bg-white p-2 rounded-xl shadow-md w-16 h-16 flex items-center justify-center">
-                            <img src="${LOGO_URL}" class="w-full h-full object-contain">
+            <div class="max-w-lg mx-auto bg-white min-h-screen shadow-2xl">
+                <div class="bg-blue-600 p-6 text-white rounded-b-3xl shadow-lg mb-6 relative">
+                    <div class="flex justify-between items-start">
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-white p-2 rounded-xl shadow-md w-14 h-14 flex items-center justify-center">
+                                <img src="${LOGO_URL}" class="w-full h-full object-contain">
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-black">قوتابخانەی گزنگ</h1>
+                                <p class="text-blue-100 text-sm">تۆماری چالاکی ڕۆژانە</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 class="text-2xl font-black leading-none">قوتابخانەی گزنگ</h1>
-                            <p class="text-blue-100 text-sm font-bold mt-1 opacity-90">سیستەمی چالاکیەکان</p>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center border-t border-white/20 pt-3">
-                        <h2 class="font-bold text-lg">خشتەی ڕۆژانە</h2>
-                        <button onclick="state.currentView='admin'; render()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-sm backdrop-blur-md transition">ئەدمین 🔒</button>
+                        <button onclick="state.currentView='admin'; render()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition backdrop-blur-md">
+                            ئەدمین 🔒
+                        </button>
                     </div>
                 </div>
 
-                <div class="px-6 space-y-4">
-                    <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm space-y-3">
-                        <input type="text" placeholder="ناوی مامۆستا" value="${state.form.teacherName}" oninput="state.form.teacherName=this.value" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:border-blue-500 outline-none">
-                        <div class="grid grid-cols-2 gap-2">
-                            <select onchange="state.form.dayOfWeek=this.value" class="bg-gray-50 p-3 rounded-xl border border-gray-200 outline-none">
-                                <option value="">ڕۆژ...</option>
-                                ${days.map(d=>`<option ${state.form.dayOfWeek===d?'selected':''}>${d}</option>`).join('')}
-                            </select>
-                            <select onchange="state.form.lessonNumber=this.value" class="bg-gray-50 p-3 rounded-xl border border-gray-200 outline-none">
-                                <option value="">وانە...</option>
-                                ${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${state.form.lessonNumber==n?'selected':''}>وانەی ${n}</option>`).join('')}
-                            </select>
-                        </div>
-                        <input type="text" placeholder="بابەت" value="${state.form.subject}" oninput="state.form.subject=this.value" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:border-blue-500 outline-none">
-                        <input type="text" placeholder="جۆری چالاکی" value="${state.form.activityName}" oninput="state.form.activityName=this.value" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:border-blue-500 outline-none">
-                        <input type="date" value="${state.form.date}" onchange="state.form.date=this.value; render()" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 outline-none text-center font-bold text-gray-600">
+                <div class="px-6">
+                    <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm mb-8 relative">
+                        <div class="absolute -top-3 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">فۆرمی تۆمارکردن</div>
                         
-                        <button onclick="handleSubmit()" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 mt-2 active:scale-95 transition">تۆمارکردن ✅</button>
+                        <div class="space-y-4 mt-2">
+                            <div>
+                                <label class="block text-gray-500 text-xs font-bold mb-1">ناوی مامۆستا</label>
+                                <input type="text" value="${state.form.teacherName}" oninput="state.form.teacherName=this.value" class="teacher-input" placeholder="ناوەکەت بنووسە...">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-gray-500 text-xs font-bold mb-1">بەروار</label>
+                                    <input type="date" value="${state.form.date}" onchange="state.form.date=this.value; render()" class="teacher-input text-center" style="font-family:sans-serif;">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-500 text-xs font-bold mb-1">ڕۆژ</label>
+                                    <select onchange="state.form.dayOfWeek=this.value" class="teacher-input cursor-pointer">
+                                        ${days.map(d=>`<option ${state.form.dayOfWeek===d?'selected':''}>${d}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-gray-500 text-xs font-bold mb-1">وانە</label>
+                                    <input type="text" value="${state.form.lessonNumber}" oninput="state.form.lessonNumber=this.value" class="teacher-input text-center" placeholder="نم: وانەی یەکەم">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-500 text-xs font-bold mb-1">بابەت</label>
+                                    <input type="text" value="${state.form.subject}" oninput="state.form.subject=this.value" class="teacher-input" placeholder="نم: بیرکاری">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-500 text-xs font-bold mb-1">جۆری چالاکی</label>
+                                <input type="text" value="${state.form.activityName}" oninput="state.form.activityName=this.value" class="teacher-input" placeholder="نم: وانەی نموونەیی...">
+                            </div>
+
+                            <button onclick="handleSubmit()" class="teacher-btn mt-2">تۆمارکردن ✅</button>
+                        </div>
                     </div>
 
-                    <div>
-                        <h3 class="font-bold text-gray-500 mb-2 text-sm px-2">چالاکیەکانی ئەمڕۆ (${todayActs.length})</h3>
-                        <div class="space-y-2 pb-10">
-                            ${todayActs.length===0 ? `<div class="text-center text-gray-400 py-4">هیچ چالاکیەک نییە</div>` : todayActs.map(a=>`
-                                <div class="bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between shadow-sm">
+                    <div class="pb-10">
+                        <h3 class="text-gray-700 font-bold mb-3 border-b pb-2 flex justify-between items-center">
+                            <span>چالاکیەکانی ئەمڕۆ</span>
+                            <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-xs">${todayActs.length}</span>
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            ${todayActs.length === 0 ? 
+                                `<div class="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">هیچ چالاکیەک تۆمار نەکراوە</div>` : 
+                                todayActs.map(a => `
+                                <div class="bg-white p-4 rounded-xl border-l-4 border-blue-500 shadow-sm flex justify-between items-center">
                                     <div>
-                                        <div class="font-bold text-gray-800">${a.teacherName}</div>
-                                        <div class="text-xs text-gray-500">${a.subject} • ${a.activityName}</div>
+                                        <div class="font-bold text-gray-800 text-lg">${a.teacherName}</div>
+                                        <div class="text-sm text-gray-500">${a.subject} - ${a.activityName}</div>
                                     </div>
-                                    <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold">وانەی ${a.lessonTime}</div>
+                                    <div class="text-right">
+                                        <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold mb-1">${a.lessonTime}</div>
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
@@ -194,17 +229,16 @@
             </div>`;
         }
 
-        // 2. ADMIN LOGIN
+        // 2. ADMIN LOGIN (VIP)
         function renderAdminLogin() {
             return `
-            <div class="min-h-screen bg-vip-dark flex items-center justify-center p-6">
+            <div class="min-h-screen flex items-center justify-center p-6">
                 <div class="w-full max-w-sm glass-vip p-8 rounded-3xl text-center relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-vip-gold to-transparent"></div>
-                    <h2 class="text-2xl font-black text-white mb-6">چوونەژوورەوەی <span class="text-vip-gold">VIP</span></h2>
-                    <input id="admUser" type="text" placeholder="بەکارهێنەر" class="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl mb-3 text-center focus:border-vip-gold outline-none transition">
-                    <input id="admPass" type="password" placeholder="پاسۆرد" class="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl mb-6 text-center focus:border-vip-gold outline-none transition">
-                    <button onclick="checkLogin()" class="w-full bg-vip-gold hover:bg-vip-goldHover text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] transition active:scale-95">چوونەژوورەوە</button>
-                    <button onclick="state.currentView='teacher'; render()" class="mt-4 text-gray-400 text-sm hover:text-white">گەڕانەوە</button>
+                    <h2 class="text-2xl font-black text-white mb-6">Admin <span class="text-vip-gold">Panel</span></h2>
+                    <input id="admUser" type="text" placeholder="Username" class="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl mb-3 text-center outline-none focus:border-vip-gold transition">
+                    <input id="admPass" type="password" placeholder="Password" class="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl mb-6 text-center outline-none focus:border-vip-gold transition">
+                    <button onclick="checkLogin()" class="w-full bg-vip-gold hover:bg-yellow-600 text-white font-bold py-4 rounded-xl shadow-lg transition">Log In</button>
+                    <button onclick="state.currentView='teacher'; render()" class="mt-4 text-gray-400 text-sm">Back to Site</button>
                 </div>
             </div>`;
         }
@@ -222,96 +256,79 @@
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
-        // 3. ADMIN DASHBOARD (With Sorting)
+        // 3. ADMIN DASHBOARD (VIP & SORTED)
         function renderAdminDashboard() {
+            const sortedActivities = getSortedActivities();
             const total = state.activities.length;
             const teachersCount = new Set(state.activities.map(a=>a.teacherName)).size;
             
-            // Sort Activities: Oldest First (1 -> 31)
-            const sortedActivities = getSortedActivities();
-
+            // Top Teacher Logic
             const counts = {}; state.activities.forEach(a => counts[a.teacherName] = (counts[a.teacherName]||0)+1);
             const topTeacher = Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0] || "نییە";
 
             return `
-            <div class="min-h-screen bg-vip-dark text-white pb-20">
+            <div class="pb-20">
                 <div class="sticky top-0 z-50 glass-vip px-6 py-4 flex justify-between items-center border-b border-vip-gold/10">
                     <div class="flex items-center gap-3">
                         <img src="${LOGO_URL}" class="w-10 h-10 bg-white rounded-lg p-1">
-                        <div class="font-black text-xl tracking-wider hidden md:block">قوتابخانەی گزنگ</div>
+                        <div class="font-black text-xl tracking-wider text-white hidden md:block">قوتابخانەی گزنگ</div>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="state.currentView='teacher'; render()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-bold transition border border-white/5">گەڕانەوە</button>
+                        <button onclick="state.currentView='teacher'; render()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-bold text-white transition border border-white/5">گەڕانەوە</button>
                         <button onclick="state.isAdminAuthenticated=false; render()" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-500/20">دەرچوون</button>
                     </div>
                 </div>
 
                 <div class="max-w-6xl mx-auto px-4 mt-8">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        <div class="glass-vip p-5 rounded-2xl text-center relative overflow-hidden group">
-                            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                        <div class="glass-vip p-5 rounded-2xl text-center">
                             <div class="text-gray-400 text-xs font-bold mb-1">کۆی چالاکی</div>
-                            <div class="text-3xl font-black text-white group-hover:scale-110 transition">${total}</div>
+                            <div class="text-3xl font-black text-white">${total}</div>
                         </div>
-                        <div class="glass-vip p-5 rounded-2xl text-center relative overflow-hidden group">
-                            <div class="absolute top-0 left-0 w-1 h-full bg-vip-gold"></div>
+                        <div class="glass-vip p-5 rounded-2xl text-center">
                             <div class="text-gray-400 text-xs font-bold mb-1">مامۆستا</div>
-                            <div class="text-3xl font-black text-vip-gold group-hover:scale-110 transition">${teachersCount}</div>
+                            <div class="text-3xl font-black text-vip-gold">${teachersCount}</div>
                         </div>
-                        <div class="glass-vip p-5 rounded-2xl text-center relative overflow-hidden col-span-2 flex items-center justify-between px-8">
+                        <div class="glass-vip p-5 rounded-2xl text-center col-span-2 md:col-span-1 flex items-center justify-between px-6">
                             <div class="text-right">
                                 <div class="text-gray-400 text-xs font-bold">یەکەمى ئەم مانگە</div>
-                                <div class="text-xl font-black text-green-400 truncate max-w-[120px]">${topTeacher}</div>
+                                <div class="text-xl font-black text-green-400 truncate max-w-[100px]">${topTeacher}</div>
                             </div>
-                            <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-2xl">🏆</div>
+                            <div class="text-3xl">🏆</div>
                         </div>
                     </div>
 
-                    <h3 class="text-gray-500 font-bold text-sm mb-3 px-2">فەرمانە خێراکان</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        <button onclick="openReport('month')" class="glass-vip p-4 rounded-2xl hover:bg-white/5 transition flex flex-col items-center gap-2 group">
-                            <span class="text-3xl group-hover:-translate-y-1 transition">📅</span>
-                            <span class="text-sm font-bold text-gray-300">خشتەی مانگ</span>
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <button onclick="openReport('month')" class="glass-vip p-4 rounded-2xl hover:bg-white/5 transition flex flex-col items-center gap-2">
+                            <span class="text-2xl">📅</span> <span class="text-xs font-bold text-gray-300">خشتە</span>
                         </button>
-                        <button onclick="openReport('photo')" class="glass-vip p-4 rounded-2xl hover:bg-white/5 transition flex flex-col items-center gap-2 group">
-                            <span class="text-3xl group-hover:-translate-y-1 transition">📸</span>
-                            <span class="text-sm font-bold text-gray-300">ڕاپۆرتی وێنە</span>
+                        <button onclick="openReport('photo')" class="glass-vip p-4 rounded-2xl hover:bg-white/5 transition flex flex-col items-center gap-2">
+                            <span class="text-2xl">📸</span> <span class="text-xs font-bold text-gray-300">وێنە</span>
                         </button>
-                        <button onclick="window.print()" class="glass-vip p-4 rounded-2xl hover:bg-white/5 transition flex flex-col items-center gap-2 group">
-                            <span class="text-3xl group-hover:-translate-y-1 transition">🖨️</span>
-                            <span class="text-sm font-bold text-gray-300">پرینت</span>
-                        </button>
-                        <button class="glass-vip p-4 rounded-2xl hover:bg-red-500/10 transition flex flex-col items-center gap-2 group border-red-500/20" onclick="if(confirm('هەموو داتاکان بسڕدرێنەوە؟')) alert('پەیوەندی بە گەشەپێدەر بکە')">
-                            <span class="text-3xl group-hover:-translate-y-1 transition">🗑️</span>
-                            <span class="text-sm font-bold text-red-400">سڕینەوەی گشتی</span>
+                        <button onclick="window.print()" class="glass-vip p-4 rounded-2xl hover:bg-white/5 transition flex flex-col items-center gap-2">
+                            <span class="text-2xl">🖨️</span> <span class="text-xs font-bold text-gray-300">پرینت</span>
                         </button>
                     </div>
 
                     <div class="glass-vip rounded-3xl overflow-hidden">
                         <div class="p-5 border-b border-white/5 flex justify-between items-center">
                             <h3 class="font-bold text-white">داتای تۆمارکراو</h3>
-                            <input type="text" placeholder="گەڕان..." oninput="filterAdminList(this.value)" class="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-sm text-white outline-none focus:border-vip-gold">
+                            <input type="text" placeholder="گەڕان..." oninput="filterAdminList(this.value)" class="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-sm text-white outline-none focus:border-vip-gold w-32">
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-right">
                                 <thead class="bg-white/5 text-gray-400">
-                                    <tr>
-                                        <th class="p-4">مامۆستا</th>
-                                        <th class="p-4">بابەت</th>
-                                        <th class="p-4">بەروار</th>
-                                        <th class="p-4 text-center">کردار</th>
-                                    </tr>
+                                    <tr><th class="p-4">مامۆستا</th><th class="p-4">بابەت</th><th class="p-4">وانە</th><th class="p-4">بەروار</th><th class="p-4 text-center">کردار</th></tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/5" id="adminTableBody">
                                     ${sortedActivities.map(a => `
-                                        <tr class="hover:bg-white/5 transition group">
+                                        <tr class="hover:bg-white/5 transition">
                                             <td class="p-4 font-bold text-white">${a.teacherName}</td>
                                             <td class="p-4 text-gray-300">${a.subject}</td>
+                                            <td class="p-4 text-vip-gold font-bold">${a.lessonTime}</td>
                                             <td class="p-4 text-gray-400 font-mono">${a.date}</td>
                                             <td class="p-4 text-center">
-                                                <button onclick="deleteActivity(${a.id})" class="bg-red-500/10 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition">
-                                                    🗑️
-                                                </button>
+                                                <button onclick="deleteActivity(${a.id})" class="bg-red-500/10 text-red-400 p-2 rounded-lg hover:bg-red-500 hover:text-white transition">🗑️</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -345,7 +362,7 @@
                 <div class="sticky top-0 bg-white shadow-md p-4 flex justify-between items-center z-50 no-print">
                     <h3 class="font-bold text-gray-800">پێشبینی ڕاپۆرت</h3>
                     <div class="flex gap-2">
-                        <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">🖨️ پرینت / PDF</button>
+                        <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">🖨️ پرینت</button>
                         <button onclick="state.showReportModal=false; render()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold">داخستن</button>
                     </div>
                 </div>
@@ -359,23 +376,17 @@
             return `<div class="a4-page bg-white relative">
                 <div class="border-b-2 border-black pb-4 mb-6 flex justify-between items-center">
                     <img src="${LOGO_URL}" class="w-20">
-                    <div class="text-center">
-                        <h1 class="text-2xl font-black">قوتابخانەی گزنگ</h1>
-                        <p class="text-gray-600">ڕاپۆرتی وێنەیی چالاکی</p>
-                    </div>
-                    <div class="text-sm text-gray-500 font-bold text-left">
-                        <p>${new Date().toLocaleDateString('en-CA')}</p>
-                    </div>
+                    <div class="text-center"><h1 class="text-2xl font-black">قوتابخانەی گزنگ</h1><p class="text-gray-600">ڕاپۆرتی وێنەیی</p></div>
+                    <div class="text-sm font-bold text-left">${new Date().toLocaleDateString('en-CA')}</div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 h-[70%]">
                     ${[0,1,2,3].map(i => `<div class="border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">وێنە ${i+1}</div>`).join('')}
                 </div>
-                <div class="absolute bottom-10 left-0 w-full text-center text-gray-500 text-sm">بەڕێوەبەرایەتی قوتابخانە</div>
+                <div class="absolute bottom-10 left-0 w-full text-center text-gray-500 text-sm">بەڕێوەبەرایەتی</div>
             </div>`;
         }
 
         function renderMonthReport() {
-            // Sort for report as well
             const list = getSortedActivities(); 
             return `<div class="a4-page bg-white">
                  <div class="border-b-2 border-black pb-4 mb-6 flex justify-between items-center">
@@ -384,9 +395,9 @@
                     <div></div>
                 </div>
                 <table class="w-full border-collapse border border-gray-300 text-sm">
-                    <thead class="bg-gray-100"><tr><th class="border p-2">#</th><th class="border p-2">مامۆستا</th><th class="border p-2">بابەت</th><th class="border p-2">بەروار</th></tr></thead>
+                    <thead class="bg-gray-100"><tr><th class="border p-2">#</th><th class="border p-2">مامۆستا</th><th class="border p-2">بابەت</th><th class="border p-2">وانە</th><th class="border p-2">بەروار</th></tr></thead>
                     <tbody>
-                        ${list.map((a,i)=>`<tr><td class="border p-2 text-center">${i+1}</td><td class="border p-2 font-bold">${a.teacherName}</td><td class="border p-2">${a.subject}</td><td class="border p-2 text-center font-mono">${a.date}</td></tr>`).join('')}
+                        ${list.map((a,i)=>`<tr><td class="border p-2 text-center">${i+1}</td><td class="border p-2 font-bold">${a.teacherName}</td><td class="border p-2">${a.subject}</td><td class="border p-2 text-center">${a.lessonTime}</td><td class="border p-2 text-center font-mono">${a.date}</td></tr>`).join('')}
                     </tbody>
                 </table>
             </div>`;
