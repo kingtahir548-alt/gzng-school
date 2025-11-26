@@ -113,10 +113,6 @@
         .btn-white:active { transform: scale(0.95); }
         .btn-white.active { background-color: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 
-        .btn-blue { background: linear-gradient(to left, #2563eb, #1d4ed8); color: white; transition: all 0.2s ease; }
-        .btn-blue:hover { background: linear-gradient(to left, #1e40af, #1e3a8a) !important; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
-        .btn-blue:active { transform: scale(0.95); }
-
         /* Report Styles */
         .report-wrapper { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding-top: 20px; }
         .a4-page { width: 210mm; min-height: 297mm; background: white !important; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; position: relative; transform-origin: top center; color: #1f2937 !important; }
@@ -182,8 +178,8 @@
             adminPassword: '', 
             showMonthModal: false, 
             showReportModal: false, 
-            showEditModal: false, // زیاد کراوە
-            editingActivity: null, // زیاد کراوە
+            showEditModal: false, 
+            editingActivity: null, 
             showSchedule: false, 
             reportScale: 1, 
             viewDay: 'شەممە', 
@@ -343,11 +339,9 @@
         }
         
         async function handleLogin() {
-            // تەنها پاسۆرد وەردەگرین
             const p = document.getElementById('password').value;
             document.getElementById('loadingOverlay').classList.remove('hidden');
             try {
-                // تەنها پاسۆرد دەنێرین
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", password: p }) });
                 const result = await response.json();
                 if (result.result === "success") { state.isAdminAuthenticated = true; state.adminPassword = p; state.login = {username:'', password:''}; render(); } 
@@ -386,7 +380,7 @@
         }
 
         // ==========================================
-        //  NEW EDIT FUNCTIONS (زیاد کراوە)
+        //  EDIT FUNCTIONS
         // ==========================================
         function openEditModal(id) {
             const act = state.activities.find(a => a.id == id);
@@ -590,7 +584,7 @@
                     
                     <h2 class="text-2xl font-black text-white mb-8 tracking-wide drop-shadow-lg">چوونەژوورەوەی ئەدمین</h2>
                     <div class="space-y-5 relative z-10">
-                        <input type="tel" id="password" placeholder="پاسۆرد بنووسە (2324)" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all tracking-widest">
+                        <input type="password" inputmode="numeric" id="password" placeholder="وشەی نهێنی بنووسە" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all tracking-widest">
                         <button onclick="handleLogin()" class="btn-neon w-full py-4 rounded-2xl font-black text-lg shadow-2xl">چوونەژوورەوە</button>
                     </div>
                 </div>
