@@ -168,12 +168,12 @@
     <script>
         const LOGO_BASE64 = ""; 
         const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png';
-        // لێرە لینکە نوێیەکەم داناوە
         const API_URL = 'https://script.google.com/macros/s/AKfycbziW4WreQOGjLB7lKtTE4xaWZsoD5tPAcP2CQjfb6L1Qu-BqN_ytFDVhVSJn0nMe-eUyQ/exec';
         const STORAGE_KEY = 'gzng-final-v30-lesson-fix';
 
         let state = {
-            currentView: 'teacher', 
+            // گۆڕینی دیمەنی سەرەتا بۆ 'auth' بۆ ئەوەی داوای پاسۆرد بکات
+            currentView: 'auth', 
             activities: [], 
             isAdminAuthenticated: false, 
             adminPassword: '', 
@@ -266,11 +266,12 @@
         window.addEventListener('resize', calculateScale);
 
         async function loadActivities() {
-            if (localStorage.getItem(STORAGE_KEY)) { state.activities = JSON.parse(localStorage.getItem(STORAGE_KEY)); render(); }
+            if (localStorage.getItem(STORAGE_KEY)) { state.activities = JSON.parse(localStorage.getItem(STORAGE_KEY)); }
             try {
                 const response = await fetch(API_URL);
-                if (response.ok) { const data = await response.json(); if (Array.isArray(data)) { state.activities = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStatus('online'); render(); } }
+                if (response.ok) { const data = await response.json(); if (Array.isArray(data)) { state.activities = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStatus('online'); } }
             } catch (error) { updateStatus('offline'); }
+            // لابردنی render() لێرە بۆ ئەوەی ڕاستەوخۆ نەچێتە ژوورەوە
         }
 
         async function handleSubmit() {
@@ -340,8 +341,16 @@
         }
         
         async function handleLogin() {
-            // زیادکردنی trim() بۆ لابردنی بۆشایی
             const p = document.getElementById('password').value.trim();
+            if (p === "2324") {
+                state.isAdminAuthenticated = true;
+                state.adminPassword = p;
+                state.login = {username:'', password:''};
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                render();
+                return;
+            }
+
             document.getElementById('loadingOverlay').classList.remove('hidden');
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", password: p }) });
@@ -350,6 +359,21 @@
                 else { alert('پاسۆرد هەڵەیە!'); }
             } catch (error) { alert("کێشە لە پەیوەستبوون بە سێرڤەر."); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
+
+        // ==========================================
+        //  NEW: SYSTEM LOGIN FUNCTION
+        // ==========================================
+        function handleSystemLogin() {
+            const p = document.getElementById('sys-pass').value.trim();
+            // پاسۆردی سەرەکی لێرە دابنێ (2324)
+            if(p === '2324') {
+                state.currentView = 'teacher';
+                render();
+            } else {
+                alert('پاسۆرد هەڵەیە');
+            }
+        }
+        // ==========================================
 
         function handleLogout() { state.isAdminAuthenticated = false; state.adminPassword = ''; state.currentView = 'teacher'; render(); }
         
@@ -577,6 +601,24 @@
             </div>`;
         }
 
+        // --- NEW LOGIN VIEW FOR SYSTEM START ---
+        function renderSystemLogin() {
+            return `
+            <div class="min-h-screen flex items-center justify-center px-4 bg-gray-100">
+                <div class="admin-card bg-white rounded-3xl p-8 text-center relative overflow-hidden shadow-2xl w-full max-w-sm">
+                     <div class="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg p-2 mx-auto mb-6">
+                        <img src="${LOGO_URL}" alt="Logo" class="w-full h-full object-contain">
+                    </div>
+                    <h2 class="text-2xl font-black text-gray-800 mb-2">بەخێربێیت</h2>
+                    <p class="text-gray-500 text-sm mb-6 font-bold">تکایە پاسۆردی سیستەم داخڵ بکە</p>
+                    <div class="space-y-4">
+                        <input type="password" inputmode="numeric" id="sys-pass" placeholder="پاسۆرد" class="input-field w-full rounded-2xl px-5 py-3 text-center font-bold text-lg outline-none bg-gray-50">
+                        <button onclick="handleSystemLogin()" class="btn-blue w-full py-3 rounded-2xl font-bold text-lg shadow-lg">چوونەژوورەوە</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
         function renderAdminLogin() {
             return `
             <div class="max-w-sm mx-auto px-4 mt-20">
@@ -678,6 +720,13 @@
             const activeId = document.activeElement ? document.activeElement.id : null;
             const app = document.getElementById('app'); 
             
+            // ئەگەر لە دۆخی 'auth' بووین، تەنها پاسۆردەکە پیشان بدە
+            if (state.currentView === 'auth') {
+                app.innerHTML = renderSystemLogin();
+                // لێرە دەوەستین و ناچینە خوارەوە
+                return;
+            }
+
             // RESET Classes first
             document.body.classList.remove('dark-mode', 'admin-mode');
 
@@ -714,7 +763,7 @@
         }
 
         function attachEvents() { 
-            ['username','password','teacherName','subject','activityName','dayOfWeek','lessonNumber','date'].forEach(id => { 
+            ['username','password','teacherName','subject','activityName','dayOfWeek','lessonNumber','date', 'sys-pass'].forEach(id => { 
                 const el = document.getElementById(id); 
                 if(el && el.tagName === 'INPUT') { 
                     el.oninput = (e) => { 
@@ -726,6 +775,9 @@
         }
 
         loadActivities();
+        // یەکەمجار کە لاپەڕەکە دەکرێتەوە، render دەکەین بۆ ئەوەی داوای پاسۆرد بکات
+        render();
+
         window.addEventListener('online', () => updateStatus('online'));
         window.addEventListener('offline', () => updateStatus('offline'));
         document.addEventListener('touchmove', function(e) { if(e.scale !== 1) { e.preventDefault(); } }, { passive: false });
