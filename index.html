@@ -15,7 +15,7 @@
             -webkit-tap-highlight-color: transparent; 
         }
 
-        /* --- Dark Mode & Admin Mode Styles (From Original Code) --- */
+        /* --- Dark Mode & Admin Mode Styles --- */
         body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
         .dark-mode .input-field { background-color: #1e293b; border-color: #334155; color: white; }
         .dark-mode .input-field:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
@@ -75,15 +75,15 @@
         const LOGO_BASE64 = ""; 
         const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png';
         
-        // =============== لێرە لینکە نوێیەکەت دابنێ ===============
-        const API_URL = 'YOUR_SCRIPT_URL_HERE'; 
-        // =======================================================
+        // =============== بەستەری نوێکراوە ===============
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxdB2_NbcYQqffHs5UD3t9c8U3Tu59blpPd97XVyyoGTZ_2pin3PChz6RLYDIRbpK9v/exec'; 
+        // ==============================================
 
         const STORAGE_KEY = 'gzng-full-v40-data';
         const USER_KEY = 'gzng-user-session';
 
         let state = {
-            currentView: 'auth', // Destpêk: Auth (Login/Register)
+            currentView: 'auth', // دەستپێک
             authMode: 'login', // login or register
             currentUser: JSON.parse(localStorage.getItem(USER_KEY)) || null,
             activities: [], 
