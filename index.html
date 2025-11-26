@@ -19,11 +19,11 @@
            TEACHER DARK MODE
            ============================ */
         body.dark-mode {
-            background-color: #0f172a; /* Slate 900 */
+            background-color: #0f172a; 
             color: #f1f5f9;
         }
         .dark-mode .input-field {
-            background-color: #1e293b; /* Slate 800 */
+            background-color: #1e293b; 
             border-color: #334155;
             color: white;
         }
@@ -48,10 +48,10 @@
         .dark-mode .btn-white.active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
 
         /* ============================
-           ADMIN SPECIAL THEME (Fixed Dark Neon)
+           ADMIN SPECIAL THEME
            ============================ */
         body.admin-mode {
-            background-color: #020617; /* Very Dark Slate */
+            background-color: #020617; 
             color: #f1f5f9;
         }
         .admin-mode .input-field {
@@ -60,7 +60,7 @@
             color: white;
         }
         .admin-mode .input-field:focus {
-            border-color: #8b5cf6; /* Purple Glow for Admin */
+            border-color: #8b5cf6; 
             box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
         }
         .admin-card {
@@ -77,10 +77,10 @@
             background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155;
         }
         .admin-mode .btn-white:hover {
-            background-color: #334155 !important; color: #c084fc !important; border-color: #c084fc; /* Purple hover */
+            background-color: #334155 !important; color: #c084fc !important; border-color: #c084fc; 
         }
         .admin-mode .btn-white.active {
-            background-color: #7c3aed !important; /* Violet */
+            background-color: #7c3aed !important;
             color: white !important;
             border-color: #7c3aed;
             box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
@@ -117,10 +117,9 @@
         .btn-blue:hover { background: linear-gradient(to left, #1e40af, #1e3a8a) !important; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
         .btn-blue:active { transform: scale(0.95); }
 
-        /* Report Styles (Always Light) */
+        /* Report Styles */
         .report-wrapper { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding-top: 20px; }
         .a4-page { width: 210mm; min-height: 297mm; background: white !important; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; position: relative; transform-origin: top center; color: #1f2937 !important; }
-        /* Force styles for report content to ignore dark/admin themes */
         .a4-page * { color: #1f2937 !important; border-color: #e5e7eb; }
         .a4-page .bg-white { background-color: white !important; }
         .a4-page input { background-color: transparent !important; color: #1f2937 !important; }
@@ -344,14 +343,15 @@
         }
         
         async function handleLogin() {
-            const u = document.getElementById('username').value;
+            // تەنها پاسۆرد وەردەگرین
             const p = document.getElementById('password').value;
             document.getElementById('loadingOverlay').classList.remove('hidden');
             try {
-                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", username: u, password: p }) });
+                // تەنها پاسۆرد دەنێرین
+                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", password: p }) });
                 const result = await response.json();
                 if (result.result === "success") { state.isAdminAuthenticated = true; state.adminPassword = p; state.login = {username:'', password:''}; render(); } 
-                else { alert('پاسۆرد یان یوزەرنەیم هەڵەیە!'); }
+                else { alert('پاسۆرد هەڵەیە!'); }
             } catch (error) { alert("کێشە لە پەیوەستبوون بە سێرڤەر."); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
@@ -421,7 +421,6 @@
                 if (result.result === "success") {
                     const idx = state.activities.findIndex(a => a.id == act.id);
                     if(idx !== -1) {
-                         // Update local state to reflect changes immediately
                          state.activities[idx] = { ...state.activities[idx], ...act, lessonTime: act.lessonNumber };
                     }
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
@@ -591,8 +590,7 @@
                     
                     <h2 class="text-2xl font-black text-white mb-8 tracking-wide drop-shadow-lg">چوونەژوورەوەی ئەدمین</h2>
                     <div class="space-y-5 relative z-10">
-                        <input type="text" id="username" placeholder="ناوی بەکارهێنەر" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all">
-                        <input type="password" id="password" placeholder="وشەی نهێنی" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all">
+                        <input type="tel" id="password" placeholder="پاسۆرد بنووسە (2324)" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all tracking-widest">
                         <button onclick="handleLogin()" class="btn-neon w-full py-4 rounded-2xl font-black text-lg shadow-2xl">چوونەژوورەوە</button>
                     </div>
                 </div>
@@ -689,9 +687,8 @@
 
             // Apply Classes Logic
             if (state.currentView === 'admin') {
-                document.body.classList.add('admin-mode'); // Force Admin Dark Mode
+                document.body.classList.add('admin-mode'); 
             } else {
-                // Teacher View - Respect User Preference
                 if (state.theme === 'dark') {
                     document.body.classList.add('dark-mode');
                 }
@@ -699,7 +696,6 @@
 
             let content = ''; 
             
-            // Priority: Edit Modal -> Report Modal -> Month Modal -> Login -> Admin View -> Teacher View
             if(state.showEditModal) content = renderEditModal(); 
             else if(state.showReportModal) content = renderReportModal(); 
             else if(state.showMonthModal) content = renderMonthModal(); 
@@ -707,7 +703,6 @@
             else if(state.currentView === 'admin') content = renderAdminView(); 
             else content = renderTeacherView(); 
             
-            // Only show Header and Nav if no modal is open
             const isModalOpen = state.showReportModal || state.showMonthModal || state.showEditModal;
             app.innerHTML = `${!isModalOpen ? Header() : ''}${!isModalOpen ? Navigation() : ''}${content}`; 
             
