@@ -29,28 +29,15 @@
     </script>
     <style>
         body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        
-        /* VIP SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 10px; }
-
-        /* ANIMATIONS */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-
-        /* GLASS EFFECT */
         .glass-vip {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(245, 158, 11, 0.1); /* Gold border */
+            border: 1px solid rgba(245, 158, 11, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
-
-        /* REPORT STYLES */
-        .report-wrapper { display: flex; justify-content: center; }
-        .a4-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm; box-shadow: 0 0 20px rgba(0,0,0,0.1); direction: rtl; text-align: right; color: black; }
-        
         @media print {
             body * { visibility: hidden; }
             #reportModal, #reportModal * { visibility: visible; }
@@ -70,9 +57,11 @@
     </div>
 
     <script>
-        // !!! لێرە لینکەکەی خۆت دابنێ !!!
+        // !!! لێرە لینکە درێژەکەی Google Scriptـی خۆت دابنێ !!!
         const API_URL = 'https://script.google.com/macros/s/AKfycbzBU_aPa1OnUPKiZ5XX0yK9b_tTl2UjGCr4-JzC6fqHfJvJ9OWQcVlnYur1FPgDpBt18A/exec';
-        const LOGO_URL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; // Example Logo
+        
+        // لێرە لینکی لۆگۆی قوتابخانە دابنێ
+        const LOGO_URL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; 
         const STORAGE_KEY = 'gzng-daily-vip';
 
         let state = {
@@ -98,7 +87,6 @@
             document.getElementById('loadingOverlay').classList.remove('hidden');
             const newAct = { id: Date.now(), ...f, lessonTime: f.lessonNumber };
             
-            // Optimistic Update
             state.activities.push(newAct);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
             
@@ -110,7 +98,6 @@
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); render(); }
         }
 
-        // --- ADMIN ACTIONS ---
         async function deleteActivity(id) {
             if(!confirm("دڵنیایت لە سڕینەوە؟")) return;
             document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -126,11 +113,16 @@
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
-        // --- RENDER FUNCTIONS ---
+        // --- HELPER: SORT BY DATE ---
+        function getSortedActivities() {
+            return [...state.activities].sort((a, b) => {
+                return new Date(a.date) - new Date(b.date);
+            });
+        }
+
         function render() {
             const app = document.getElementById('app');
             let content = '';
-
             if (state.showReportModal) content = renderReportModal();
             else if (state.currentView === 'admin') {
                 if (!state.isAdminAuthenticated) content = renderAdminLogin();
@@ -141,7 +133,7 @@
             app.innerHTML = content;
         }
 
-        // 1. TEACHER VIEW (Simple & Clean)
+        // 1. TEACHER VIEW
         function renderTeacherView() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
             const todayActs = state.activities.filter(a => a.date === state.form.date);
@@ -149,11 +141,19 @@
             return `
             <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl">
                 <div class="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg mb-6">
-                    <div class="flex justify-between items-center">
-                        <h1 class="text-2xl font-black">خشتەی ڕۆژانە</h1>
-                        <button onclick="state.currentView='admin'; render()" class="bg-white/20 px-3 py-1 rounded-lg text-sm backdrop-blur-md">ئەدمین 🔒</button>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="bg-white p-2 rounded-xl shadow-md w-16 h-16 flex items-center justify-center">
+                            <img src="${LOGO_URL}" class="w-full h-full object-contain">
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-black leading-none">قوتابخانەی گزنگ</h1>
+                            <p class="text-blue-100 text-sm font-bold mt-1 opacity-90">سیستەمی چالاکیەکان</p>
+                        </div>
                     </div>
-                    <p class="text-blue-100 text-sm mt-1">تۆمارکردنی چالاکیەکان بە ئاسانی</p>
+                    <div class="flex justify-between items-center border-t border-white/20 pt-3">
+                        <h2 class="font-bold text-lg">خشتەی ڕۆژانە</h2>
+                        <button onclick="state.currentView='admin'; render()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-sm backdrop-blur-md transition">ئەدمین 🔒</button>
+                    </div>
                 </div>
 
                 <div class="px-6 space-y-4">
@@ -194,7 +194,7 @@
             </div>`;
         }
 
-        // 2. ADMIN LOGIN (Neon Style)
+        // 2. ADMIN LOGIN
         function renderAdminLogin() {
             return `
             <div class="min-h-screen bg-vip-dark flex items-center justify-center p-6">
@@ -222,26 +222,31 @@
             finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
-        // 3. VIP ADMIN DASHBOARD (The Masterpiece)
+        // 3. ADMIN DASHBOARD (With Sorting)
         function renderAdminDashboard() {
             const total = state.activities.length;
             const teachersCount = new Set(state.activities.map(a=>a.teacherName)).size;
             
-            // Find Top Teacher
+            // Sort Activities: Oldest First (1 -> 31)
+            const sortedActivities = getSortedActivities();
+
             const counts = {}; state.activities.forEach(a => counts[a.teacherName] = (counts[a.teacherName]||0)+1);
             const topTeacher = Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0] || "نییە";
 
             return `
             <div class="min-h-screen bg-vip-dark text-white pb-20">
-                <div class="sticky top-0 z-50 glass-vip px-6 py-4 flex justify-between items-center">
-                    <div class="font-black text-xl tracking-wider">داشبۆرد <span class="text-vip-gold text-xs bg-vip-gold/10 px-2 py-1 rounded border border-vip-gold/20">PRO</span></div>
+                <div class="sticky top-0 z-50 glass-vip px-6 py-4 flex justify-between items-center border-b border-vip-gold/10">
+                    <div class="flex items-center gap-3">
+                        <img src="${LOGO_URL}" class="w-10 h-10 bg-white rounded-lg p-1">
+                        <div class="font-black text-xl tracking-wider hidden md:block">قوتابخانەی گزنگ</div>
+                    </div>
                     <div class="flex gap-3">
                         <button onclick="state.currentView='teacher'; render()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-bold transition border border-white/5">گەڕانەوە</button>
                         <button onclick="state.isAdminAuthenticated=false; render()" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-500/20">دەرچوون</button>
                     </div>
                 </div>
 
-                <div class="max-w-5xl mx-auto px-4 mt-8">
+                <div class="max-w-6xl mx-auto px-4 mt-8">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                         <div class="glass-vip p-5 rounded-2xl text-center relative overflow-hidden group">
                             <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
@@ -298,7 +303,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/5" id="adminTableBody">
-                                    ${state.activities.slice().reverse().map(a => `
+                                    ${sortedActivities.map(a => `
                                         <tr class="hover:bg-white/5 transition group">
                                             <td class="p-4 font-bold text-white">${a.teacherName}</td>
                                             <td class="p-4 text-gray-300">${a.subject}</td>
@@ -327,7 +332,6 @@
             });
         }
 
-        // --- REPORT LOGIC (Simplified for VIP) ---
         function openReport(type) {
             state.reportType = type;
             state.showReportModal = true;
@@ -335,10 +339,7 @@
         }
 
         function renderReportModal() {
-            // Reuse the previous report logic but keep it clean inside modal
-            // Logic mostly same, just ensuring it renders inside the modal container
             const content = state.reportType === 'photo' ? renderPhotoReport() : renderMonthReport();
-            
             return `
             <div id="reportModal" class="fixed inset-0 bg-gray-900 z-[100] overflow-y-auto">
                 <div class="sticky top-0 bg-white shadow-md p-4 flex justify-between items-center z-50 no-print">
@@ -355,7 +356,6 @@
         }
 
         function renderPhotoReport() {
-            // Simple A4 Layout placeholder logic
             return `<div class="a4-page bg-white relative">
                 <div class="border-b-2 border-black pb-4 mb-6 flex justify-between items-center">
                     <img src="${LOGO_URL}" class="w-20">
@@ -375,7 +375,8 @@
         }
 
         function renderMonthReport() {
-            const list = state.activities; // Should filter by month in real app
+            // Sort for report as well
+            const list = getSortedActivities(); 
             return `<div class="a4-page bg-white">
                  <div class="border-b-2 border-black pb-4 mb-6 flex justify-between items-center">
                     <img src="${LOGO_URL}" class="w-20">
@@ -391,7 +392,6 @@
             </div>`;
         }
 
-        // Init
         loadActivities();
     </script>
 </body>
