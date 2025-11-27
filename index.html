@@ -168,8 +168,8 @@
     <script>
         const LOGO_BASE64 = ""; 
         const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png';
-        // ئەو لینکە نوێیە لێرە دانراوە
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxEcuI1I4VvkhEL3Lo3IHdJmHHvT4NFAYAOFy3OZicAxCgwJvQ_WyNgXr7VFKI5PjD_/exec';
+        // لینکی نوێی سێرڤەر
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzFN6YUDZiFpaiVbYW5y-jPTMtHcJvyI0Aiz7ov0iE3QI-Cuewf9WHpPuoz3FyIw1uw/exec';
         const STORAGE_KEY = 'gzng-final-v30-lesson-fix';
 
         let state = {
@@ -296,12 +296,22 @@
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(newActivity) });
                 const result = await response.json();
-                if (result.result === "success") { showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
+                
+                if (result.result === "success") { 
+                    showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
                     state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] }; 
                     updateStatus('online'); 
                 } 
-                else if (result.result === "conflict") { state.activities = tempState; alert(`⚠️ ئاگاداری!\n\nلەم کاتەدا مامۆستا (${result.teacher}) چالاکی هەیە.`); localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities)); } 
-                else { state.activities = tempState; alert("هەڵە لە سێرڤەر."); }
+                else if (result.result === "conflict") { 
+                    // گەڕاندنەوەی داتا لۆکاڵەکە چونکە رەتکرایەوە
+                    state.activities = tempState; 
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.activities));
+                    alert(`⚠️ ئاگاداری!\n\nلەم کاتەدا مامۆستا (${result.teacher}) چالاکی هەیە.`); 
+                } 
+                else { 
+                    state.activities = tempState; 
+                    alert("هەڵە لە سێرڤەر."); 
+                }
             } catch (e) { alert("کێشە لە ئینتەرنێت. داتا لەناو مۆبایل هەڵگیرا."); updateStatus('offline'); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); render(); }
         }
 
