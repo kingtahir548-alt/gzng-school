@@ -224,7 +224,25 @@
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(newActivity) });
                 const result = await response.json();
-                if (result.result === "success") { showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
+                
+                // لێرە دەستکاری کراوە بۆ زیادکردنی بۆتی تێلیگرام
+                if (result.result === "success") { 
+                    showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
+                    
+                    // --- TELEGRAM NOTIFICATION START ---
+                    const botToken = "8587767254:AAGf7W3YD7gZd7-cISgekh_cR6mjMBvZgwE";
+                    const chatId = "992841367"; 
+                    
+                    const message = `🔔 *چالاکی نوێ تۆمارکرا*\n\n` +
+                                    `👤 *مامۆستا:* ${state.form.teacherName}\n` +
+                                    `📚 *بابەت:* ${state.form.subject}\n` +
+                                    `📝 *جۆری چالاکی:* ${state.form.activityName}\n` +
+                                    `📅 *بەروار:* ${state.form.date}\n` +
+                                    `⏱ *وانە:* ${state.form.lessonNumber}`;
+                                    
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`).catch(console.error);
+                    // --- TELEGRAM NOTIFICATION END ---
+
                     state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] }; 
                     updateStatus('online'); 
                 } 
