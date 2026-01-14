@@ -234,7 +234,18 @@
             }
 
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            
+ // پشکنین بۆ ئەوەی تەنها یەک چالاکی لە هەمان کاتدا هەبێت
+    const alreadyReserved = state.activities.some(a => 
+        a.date === state.form.date && 
+        a.lessonNumber === state.form.lessonNumber
+    );
+
+    if (alreadyReserved) {
+        // لادانی لۆدینگ و نیشاندانی پەیامێکی گشتی
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        alert("⚠️ ببورە، ئەم کاتە  پێشتر گیراوە. تکایە کاتێکی تر هەڵبژێرە.");
+        return; 
+    }
             const newActivity = { 
                 action: 'submit', 
                 id: Date.now(), 
@@ -732,4 +743,5 @@
     </script>
 </body>
 </html>
+
 
