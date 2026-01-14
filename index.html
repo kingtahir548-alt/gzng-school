@@ -222,7 +222,7 @@
         async function handleSubmit() {
             // **گۆڕدرا:** پەیامی ئاگادارکردنەوە بۆ کاتی قەدەغەکردن سادە کرایەوە
             if (state.blockedLessons.includes(state.form.lessonNumber) || state.blockedDays.includes(state.form.dayOfWeek)) {
-                alert(`⚠️ ببورە! ئەم کاتە چالاکی پێشتر بۆی تۆمار کراوە یان بەردەست نییە.`);
+                alert(`⚠️ ببورە، ئەم کاتە  پێشتر گیراوە. تکایە کاتێکی تر هەڵبژێرە`);
                 return;
             }
             
@@ -743,5 +743,6 @@
     </script>
 </body>
 </html>
+
 
 
