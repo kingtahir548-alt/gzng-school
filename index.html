@@ -42,20 +42,29 @@
         .admin-card { background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(148, 163, 184, 0.1); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
         .admin-input:focus { border-color: #a855f7 !important; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3) !important; }
         
-        /* Buttons for Admin Mode (Used for navigation) */
+        /* Buttons for Admin Mode */
         .admin-mode .btn-secondary { background-color: #1e293b; color: #cbd5e1; border-color: #334155; }
         .admin-mode .btn-secondary:hover { background-color: #334155 !important; color: #c084fc !important; border-color: #c084fc; }
         .admin-mode .btn-secondary.active { background-color: #a855f7 !important; color: white !important; border-color: #a855f7; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
 
 
-        /* Report & Scrollbar Styles (Unchanged for Functionality) */
+        /* Report & Scrollbar Styles */
         .report-wrapper { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding-top: 20px; }
         .a4-page { width: 210mm; min-height: 297mm; background: white !important; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; text-align: right; position: relative; transform-origin: top center; color: #1f2937 !important; }
         .a4-page * { color: #1f2937 !important; border-color: #e5e7eb; }
-        .report-table th { background-color: #f1f5f9 !important; color: #334155 !important; }
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: center; font-size: 13px; line-height: 1.5; }
+        .report-table th { background-color: #f8fafc !important; color: #1e3a8a !important; font-weight: 900; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+        /* Image Aspect Ratios */
+        .ar-landscape { aspect-ratio: 16/10; }
+        .ar-portrait { aspect-ratio: 10/16; }
+        .image-slot { position: relative; cursor: move; }
+        .img-controls { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; opacity: 0; transition: 0.3s ease; }
+        .image-slot:hover .img-controls { opacity: 1; }
 
         @media print { 
             body * { visibility: hidden; } 
@@ -81,32 +90,30 @@
 
     <script>
         // داتای سەرەکی و لۆجیکی Backend/API
-        // ⚠️ ئەم هێڵەی خوارەوە بە لینکی لۆگۆی گزنگ گۆڕدراوە.
-        const LOGO_BASE64 = "https://i.ibb.co/2766GHxS/logo-gzng.png"; // **لۆگۆی چاککراو**
-        // لێرە پشکنین دەکات بۆ ئەوەی بزانێت Base64 کار دەکات، ئەگەر نا ناوی فایلی لۆکاڵی logo.png بەکار دەهێنێت
-        const LOGO_URL = LOGO_BASE64.length > 50 ? LOGO_BASE64 : 'logo.png'; 
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxz6dABixPyP4GWyWbSkfMdRasOrm1ogsZxieDcnkXXrLSkQa14aiS6LHvzjVB3jQo/exec'; 
+        const LOGO_BASE64 = "https://i.ibb.co/2766GHxS/logo-gzng.png"; 
+        const LOGO_URL = LOGO_BASE64; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxz6dABixPyP4GWyWbSkfMdRasOrm1ogsZxieDcnkXXrLSkQa14aiS6LHvzjVB3jQo/exec'; 
         const STORAGE_KEY = 'gzng-final-v30-lesson-fix';
 
         let state = {
-            currentView: 'teacher', activities: [], isAdminAuthenticated: false, adminPassword: '', 
-            showMonthModal: false, showReportModal: false, showSchedule: false, reportScale: 1, 
-            viewDay: 'شەممە', isOnline: true, filterDate: new Date().toISOString().slice(0, 7), 
+            currentView: 'teacher', activities: [], isAdminAuthenticated: false, adminPassword: '', 
+            showMonthModal: false, showReportModal: false, showSchedule: false, reportScale: 1, 
+            viewDay: 'شەممە', isOnline: true, 
+            filterDate: new Date().toISOString().slice(0, 7), // "YYYY-MM"
+            weekStartDate: new Date().toISOString().split('T')[0], // "YYYY-MM-DD"
+            adminReportType: 'month', // 'year', 'month', 'week'
             login: { username: '', password: '' },
-            theme: localStorage.getItem('gzng-theme') || 'light', 
+            theme: localStorage.getItem('gzng-theme') || 'light', 
             form: { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] },
             report: { teacherName: '', activityName: '', date: new Date().toISOString().split('T')[0], orientation: 'landscape', showTeacher: true, images: [null, null, null, null], imgSettings: Array(4).fill().map(() => ({zoom: 1, x: 50, y: 50})) },
-            // زیادکراوی نوێ بۆ ئەدمین:
-            blockedLessons: [], 
+            blockedLessons: [], 
             blockedDays: [],
         };
-        
-        // --- هەموو لۆجیکی جاڤاسکریپتی پێشووت لێرە جێگیر کراوە ---
         
         function getLessonName(activity) {
             let val = activity.lessonNumber || activity.lessonTime;
             if (!val || val === 'undefined') return 'دیاری نەکراوە';
-            const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم' };
+            const map = { '1': 'وانەی یەکەم', '2': 'وانەی دووەم', '3': 'وانەی سێیەم', '4': 'وانەی چوارەم', '5': 'وانەی پێنجەم', '6': 'وانەی شەشەم', 'وانەی یەکەم': 'وانەی یەکەم', 'وانەی دووەم': 'وانەی دووەم', 'وانەی سێیەم': 'وانەی سێیەم', 'وانەی چوارەم': 'وانەی چوارەم', 'وانەی پێنجەم': 'وانەی پێنجەم', 'وانەی شەشەم': 'وانەی شەشەم' };
             return map[val] || val;
         }
 
@@ -119,65 +126,65 @@
         let drag = { active: false, idx: -1, startX: 0, startY: 0, initialX: 50, initialY: 50 };
         let rafId = null;
 
-        function startDrag(e, idx) { 
-            if (!state.report.images[idx] || ['INPUT', 'BUTTON', 'RANGE'].includes(e.target.tagName)) return; 
+        function startDrag(e, idx) { 
+            if (!state.report.images[idx] || ['INPUT', 'BUTTON', 'RANGE'].includes(e.target.tagName)) return; 
             if (e.type === 'touchstart' && e.touches.length > 1) return;
-            e.preventDefault(); drag.active = true; drag.idx = idx; 
+            e.preventDefault(); drag.active = true; drag.idx = idx; 
             const pt = e.touches ? e.touches[0] : e;
-            drag.startX = pt.clientX; drag.startY = pt.clientY; 
-            drag.initialX = parseFloat(state.report.imgSettings[idx].x); 
-            drag.initialY = parseFloat(state.report.imgSettings[idx].y); 
+            drag.startX = pt.clientX; drag.startY = pt.clientY; 
+            drag.initialX = parseFloat(state.report.imgSettings[idx].x); 
+            drag.initialY = parseFloat(state.report.imgSettings[idx].y); 
         }
 
-        function onMove(e) { 
-            if (!drag.active) return; 
-            e.preventDefault(); 
+        function onMove(e) { 
+            if (!drag.active) return; 
+            e.preventDefault(); 
             if (rafId) cancelAnimationFrame(rafId);
             rafId = requestAnimationFrame(() => {
                 const pt = e.touches ? e.touches[0] : e;
-                const sensitivity = 0.4 / state.reportScale; 
-                const dX = (drag.startX - pt.clientX) * sensitivity; 
-                const dY = (drag.startY - pt.clientY) * sensitivity; 
-                let nX = Math.min(100, Math.max(0, drag.initialX + dX)); 
-                let nY = Math.min(100, Math.max(0, drag.initialY + dY)); 
-                state.report.imgSettings[drag.idx].x = nX; 
-                state.report.imgSettings[drag.idx].y = nY; 
-                const img = document.getElementById(`rep-img-${drag.idx}`); 
-                if (img) img.style.objectPosition = `${nX}% ${nY}%`; 
-                const sX = document.getElementById(`slider-x-${drag.idx}`); 
-                const sY = document.getElementById(`slider-y-${drag.idx}`); 
-                if(sX) sX.value = nX; if(sY) sY.value = nY; 
+                const sensitivity = 0.4 / state.reportScale; 
+                const dX = (drag.startX - pt.clientX) * sensitivity; 
+                const dY = (drag.startY - pt.clientY) * sensitivity; 
+                let nX = Math.min(100, Math.max(0, drag.initialX + dX)); 
+                let nY = Math.min(100, Math.max(0, drag.initialY + dY)); 
+                state.report.imgSettings[drag.idx].x = nX; 
+                state.report.imgSettings[drag.idx].y = nY; 
+                const img = document.getElementById(`rep-img-${drag.idx}`); 
+                if (img) img.style.objectPosition = `${nX}% ${nY}%`; 
+                const sX = document.getElementById(`slider-x-${drag.idx}`); 
+                const sY = document.getElementById(`slider-y-${drag.idx}`); 
+                if(sX) sX.value = nX; if(sY) sY.value = nY; 
             });
         }
         function stopDrag() { drag.active = false; drag.idx = -1; if(rafId) cancelAnimationFrame(rafId); }
 
-        function updateStatus(status) { 
-            const el = document.getElementById('statusBar'); 
-            el.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-orange-100', 'text-orange-700'); 
-            if(status === 'online') { el.classList.add('bg-green-100', 'text-green-700'); el.innerHTML = "🟢 ئۆنلاین"; state.isOnline = true; } 
-            else { el.classList.add('bg-orange-100', 'text-orange-700'); el.innerHTML = "🟠 لۆکاڵ"; state.isOnline = false; } 
-            setTimeout(() => el.classList.add('hidden'), 4000); 
+        function updateStatus(status) { 
+            const el = document.getElementById('statusBar'); 
+            if(!el) return;
+            el.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-orange-100', 'text-orange-700'); 
+            if(status === 'online') { el.classList.add('bg-green-100', 'text-green-700'); el.innerHTML = "🟢 ئۆنلاین"; state.isOnline = true; } 
+            else { el.classList.add('bg-orange-100', 'text-orange-700'); el.innerHTML = "🟠 لۆکاڵ"; state.isOnline = false; } 
+            setTimeout(() => el.classList.add('hidden'), 4000); 
         }
 
         function calculateScale() {
             if (!state.showReportModal && !state.showMonthModal) return;
             const viewportWidth = window.innerWidth;
-            const wrapperPadding = 20; 
-            const targetWidth = viewportWidth - wrapperPadding;
-            const a4WidthPx = 794; 
-            if (targetWidth < a4WidthPx) { state.reportScale = targetWidth / a4WidthPx; } else { state.reportScale = 1; }
+            const a4WidthPx = 794; 
+            const targetWidth = viewportWidth - 40;
+            if (targetWidth < a4WidthPx) state.reportScale = targetWidth / a4WidthPx;
+            else state.reportScale = 1;
+
             const page = document.querySelector('.a4-page');
             const wrapper = document.querySelector('.report-wrapper');
-            if (page && wrapper) { 
-                page.style.transform = `scale(${state.reportScale})`; 
-                const scaledHeight = page.getBoundingClientRect().height;
-                wrapper.style.height = (scaledHeight + 50) + 'px';
+            if (page && wrapper) { 
+                page.style.transform = `scale(${state.reportScale})`; 
+                wrapper.style.height = (page.getBoundingClientRect().height + 50) + 'px';
             }
         }
         window.addEventListener('resize', calculateScale);
 
         async function loadActivities() {
-            // بارکردنی کۆن لە لۆکاڵ ستۆرج
             const localDataString = localStorage.getItem(STORAGE_KEY);
             if (localDataString) {
                 try {
@@ -186,7 +193,7 @@
                         state.activities = localData.activities;
                         state.blockedDays = localData.settings?.BlockedDays || [];
                         state.blockedLessons = localData.settings?.BlockedLessons || [];
-                    } else if (Array.isArray(localData)) { // پشتیوانی کۆدی کۆن
+                    } else if (Array.isArray(localData)) { 
                         state.activities = localData;
                     }
                     render();
@@ -197,138 +204,105 @@
                 const response = await fetch(API_URL);
                 if (response.ok) {
                     const data = await response.json();
-                    
-                    if (data && Array.isArray(data.activities)) { 
+                    if (data && Array.isArray(data.activities)) { 
                         state.activities = data.activities;
-                        state.blockedDays = data.settings.BlockedDays;
-                        state.blockedLessons = data.settings.BlockedLessons;
-                        
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); 
-                        
-                        updateStatus('online'); 
-                        render(); 
-                    } else if (Array.isArray(data)) { // ئەگەر سێرڤەری کۆن بێت
-                        state.activities = data;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                        updateStatus('online');
-                        render();
+                        state.blockedDays = data.settings.BlockedDays || [];
+                        state.blockedLessons = data.settings.BlockedLessons || [];
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); 
+                        updateStatus('online'); 
+                        render(); 
                     }
                 }
-            } catch (error) { 
-                updateStatus('offline'); 
+            } catch (error) { 
+                updateStatus('offline'); 
             }
         }
 
         async function handleSubmit() {
-            // **گۆڕدرا:** پەیامی ئاگادارکردنەوە بۆ کاتی قەدەغەکردن سادە کرایەوە
+            // ١. پشکنین بۆ ئەو ڕۆژ و وانانەی ئەدمین قەدەغەی کردوون
             if (state.blockedLessons.includes(state.form.lessonNumber) || state.blockedDays.includes(state.form.dayOfWeek)) {
-                alert(`⚠️ ببورە، ئەم کاتە  پێشتر گیراوە. تکایە کاتێکی تر هەڵبژێرە`);
+                alert(`⚠️ ببورە، ئەم کاتە پێشتر گیراوە. تکایە کاتێکی تر هەڵبژێرە`);
                 return;
             }
             
-            if (!validateForm() || !state.form.lessonNumber) {
-                 if (!state.form.lessonNumber) document.getElementById('lessonNumber').classList.add('input-error');
-                 return;
-            } else {
-                 document.getElementById('lessonNumber').classList.remove('input-error');
-            }
+            if (!validateForm()) return;
 
             document.getElementById('loadingOverlay').classList.remove('hidden');
- // پشکنین بۆ ئەوەی تەنها یەک چالاکی لە هەمان کاتدا هەبێت
-    const alreadyReserved = state.activities.some(a => 
-        a.date === state.form.date && 
-        a.lessonNumber === state.form.lessonNumber
-    );
 
-    if (alreadyReserved) {
-        // لادانی لۆدینگ و نیشاندانی پەیامێکی گشتی
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        alert("⚠️ ببورە، ئەم کاتە  پێشتر گیراوە. تکایە کاتێکی تر هەڵبژێرە.");
-        return; 
-    }
-            const newActivity = { 
-                action: 'submit', 
-                id: Date.now(), 
+            // ٢. پشکنین بۆ دووبارە نەبوونەوەی وانە لە هەمان بەروار (ئەوەی داوات کردبوو)
+            const alreadyReserved = state.activities.some(a => 
+                parseDate(a.date) === state.form.date && 
+                a.lessonNumber === state.form.lessonNumber
+            );
+
+            if (alreadyReserved) {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                alert("⚠️ ببورە، ئەم وانەیە لەم بەروارەدا پێشتر لە لایەن مامۆستایەکی ترەوە تۆمار کراوە!");
+                return; 
+            }
+
+            const newActivity = { 
+                action: 'submit', 
+                id: Date.now(), 
                 ...state.form,
-                lessonTime: state.form.lessonNumber 
+                lessonTime: state.form.lessonNumber 
             };
 
             const tempState = [...state.activities];
             state.activities.push(newActivity);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ activities: state.activities, settings: { blockedDays: state.blockedDays, blockedLessons: state.blockedLessons } }));
             
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(newActivity) });
                 const result = await response.json();
                 
-                if (result.result === "success") { 
-                    showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
+                if (result.result === "success") { 
+                    showNotification("تۆمارکرا!", "بە سەرکەوتوویی نێردرا"); 
                     
-                    // --- TELEGRAM NOTIFICATION START ---
                     const botToken = "8587767254:AAGf7W3YD7gZd7-cISgekh_cR6mjMBvZgwE";
-                    const chatId = "992841367"; 
-                    
-                    const message = `🔔 *چالاکی نوێ تۆمارکرا*\n\n` +
-                                     `👤 *مامۆستا:* ${state.form.teacherName}\n` +
-                                     `📚 *بابەت:* ${state.form.subject}\n` +
-                                     `📝 *جۆری چالاکی:* ${state.form.activityName}\n` +
-                                     `📅 *بەروار:* ${state.form.date}\n` +
-                                     `⏱ *وانە:* ${state.form.lessonNumber}`;
-                                     
+                    const chatId = "992841367"; 
+                    const message = `🔔 *چالاکی نوێ تۆمارکرا*\n\n👤 *مامۆستا:* ${state.form.teacherName}\n📚 *بابەت:* ${state.form.subject}\n📝 *جۆری چالاکی:* ${state.form.activityName}\n📅 *بەروار:* ${state.form.date}\n⏱ *وانە:* ${state.form.lessonNumber}`;
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`).catch(console.error);
-                    // --- TELEGRAM NOTIFICATION END ---
 
-                    state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] }; 
-                    updateStatus('online'); 
-                } 
-                else if (result.result === "conflict") { 
-                    state.activities = tempState; 
-                    alert(`⚠️ ئاگاداری!\n\nلەم کاتەدا مامۆستا (${result.teacher}) چالاکی هەیە.`); 
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ activities: state.activities, settings: { blockedDays: state.blockedDays, blockedLessons: state.blockedLessons } })); 
-                } 
-                else { 
-                    state.activities = tempState; 
-                    alert("هەڵە لە سێرڤەر."); 
+                    state.form = { teacherName: '', subject: '', activityName: '', dayOfWeek: '', lessonNumber: '', date: new Date().toISOString().split('T')[0] }; 
+                    updateStatus('online'); 
+                } 
+                else if (result.result === "conflict") { 
+                    state.activities = tempState; 
+                    alert(`⚠️ ئاگاداری!\n\nلەم کاتەدا مامۆستا (${result.teacher}) چالاکی هەیە.`); 
+                } 
+                else { 
+                    state.activities = tempState; 
+                    alert("هەڵە لە سێرڤەر."); 
                 }
-            } catch (e) { 
-                alert("کێشە لە ئینتەرنێت. داتا لەناو مۆبایل هەڵگیرا."); 
-                updateStatus('offline'); 
-            } finally { 
-                document.getElementById('loadingOverlay').classList.add('hidden'); 
-                render(); 
+            } catch (e) { 
+                alert("کێشە لە ئینتەرنێت. داتا لەناو مۆبایل هەڵگیرا."); 
+                updateStatus('offline'); 
+            } finally { 
+                document.getElementById('loadingOverlay').classList.add('hidden'); 
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ activities: state.activities, settings: { BlockedDays: state.blockedDays, BlockedLessons: state.blockedLessons } }));
+                render(); 
             }
         }
 
         function downloadElementAsImage(id, name) {
             const el = document.getElementById(id);
             if(!el) return;
-            const btn = document.activeElement;
-            const txt = btn ? btn.innerText : '';
-            if(btn) btn.innerText = '...';
             const originalTransform = el.style.transform;
-            el.style.transform = 'none'; 
+            el.style.transform = 'none'; 
             
-            const inputs = el.querySelectorAll('input');
-            inputs.forEach(i => { const s = document.createElement('span'); s.innerText = i.value; s.className = 'print-text-temp font-bold text-gray-900 ' + i.className; s.style.fontSize = window.getComputedStyle(i).fontSize; s.style.display = 'block'; i.style.display = 'none'; i.parentNode.insertBefore(s, i); });
-            
-            html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' }).then(c => { 
-                c.toBlob(function(blob) {
-                    const url = URL.createObjectURL(blob);
-                    const l = document.createElement('a'); l.download = name.replace('.png', '.jpg'); l.href = url;
-                    document.body.appendChild(l); l.click(); document.body.removeChild(l); URL.revokeObjectURL(url);
-                    document.querySelectorAll('.print-text-temp').forEach(s => s.remove()); inputs.forEach(i => i.style.display = ''); 
-                    el.style.transform = originalTransform; 
-                    if(btn) btn.innerText = txt; 
-                }, 'image/jpeg', 0.9);
-            }).catch(e => { alert("کێشە لە دروستکردنی وێنە"); el.style.transform = originalTransform; if(btn) btn.innerText = txt; });
+            html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' }).then(c => { 
+                const l = document.createElement('a'); l.download = name; l.href = c.toDataURL('image/jpeg', 0.9);
+                l.click();
+                el.style.transform = originalTransform; 
+            }).catch(e => { alert("کێشە لە دروستکردنی وێنە"); el.style.transform = originalTransform; });
         }
 
-        function handleImage(input, idx) { 
-            if(input.files[0]) { const r = new FileReader(); r.onload = (e) => { state.report.images[idx] = e.target.result; state.report.imgSettings[idx] = {zoom: 1, x: 50, y: 50}; render(); }; r.readAsDataURL(input.files[0]); } 
+        function handleImage(input, idx) { 
+            if(input.files[0]) { const r = new FileReader(); r.onload = (e) => { state.report.images[idx] = e.target.result; state.report.imgSettings[idx] = {zoom: 1, x: 50, y: 50}; render(); }; r.readAsDataURL(input.files[0]); } 
         }
 
-        function updateImg(idx, prop, val) { 
-            state.report.imgSettings[idx][prop] = val; 
+        function updateImg(idx, prop, val) { 
+            state.report.imgSettings[idx][prop] = val; 
             const img = document.getElementById(`rep-img-${idx}`);
             if(img) { if(prop==='zoom') img.style.transform = `scale(${val})`; else img.style.objectPosition = `${state.report.imgSettings[idx].x}% ${state.report.imgSettings[idx].y}%`; }
         }
@@ -340,409 +314,332 @@
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", username: u, password: p }) });
                 const result = await response.json();
-                if (result.result === "success") { state.isAdminAuthenticated = true; state.adminPassword = p; state.login = {username:'', password:''}; render(); } 
+                if (result.result === "success") { state.isAdminAuthenticated = true; state.adminPassword = p; render(); } 
                 else { alert('پاسۆرد یان یوزەرنەیم هەڵەیە!'); }
             } catch (error) { alert("کێشە لە پەیوەستبوون بە سێرڤەر."); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
 
         function handleLogout() { state.isAdminAuthenticated = false; state.adminPassword = ''; state.currentView = 'teacher'; render(); }
         
-        function validateForm() { 
-            let valid = true; 
-            ['teacherName', 'subject', 'activityName', 'dayOfWeek'].forEach(id => { const el = document.getElementById(id); if(!state.form[id] || state.form[id] === '') { if(el) el.classList.add('input-error'); valid = false; } else if(el) el.classList.remove('input-error'); }); 
-            if(!state.form.lessonNumber || state.form.lessonNumber === '') { document.getElementById('lessonNumber').classList.add('input-error'); valid = false; } else { document.getElementById('lessonNumber').classList.remove('input-error'); }
-            return valid; 
+        function validateForm() { 
+            let valid = true; 
+            ['teacherName', 'subject', 'activityName', 'dayOfWeek', 'lessonNumber'].forEach(id => { 
+                const el = document.getElementById(id); 
+                if(!state.form[id] || state.form[id] === '') { if(el) el.classList.add('input-error'); valid = false; } 
+                else if(el) el.classList.remove('input-error'); 
+            }); 
+            return valid; 
         }
 
-        function showNotification(title, msg) { 
-            const n = document.getElementById('notification'); document.getElementById('notifTitle').innerText = title; document.getElementById('notifText').innerText = msg; n.classList.remove('hidden'); setTimeout(() => n.classList.add('hidden'), 3000); 
+        function showNotification(title, msg) { 
+            const n = document.getElementById('notification'); 
+            if(!n) return;
+            document.getElementById('notifTitle').innerText = title; 
+            document.getElementById('notifText').innerText = msg; 
+            n.classList.remove('hidden'); 
+            setTimeout(() => n.classList.add('hidden'), 3000); 
         }
 
-        async function deleteActivity(id) { 
-            if(confirm("دڵنیایت؟ ئەم چالاکیە بە تەواوی لە داتابەیس دەسڕدرێتەوە!")) { 
+        async function deleteActivity(id) { 
+            if(confirm("دڵنیایت؟ ئەم چالاکیە بە تەواوی لە داتابەیس دەسڕدرێتەوە!")) { 
                 document.getElementById('loadingOverlay').classList.remove('hidden');
                 try {
                     const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "delete", id: id, password: state.adminPassword }) });
                     const result = await response.json();
-                    if (result.result === "success") { 
-                        state.activities = state.activities.filter(a => a.id != id); 
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify({ activities: state.activities, settings: { blockedDays: state.blockedDays, blockedLessons: state.blockedLessons } }));
-                        showNotification("سڕایەوە", "چالاکیەکە بە سەرکەوتوویی سڕایەوە"); 
-                        render(); 
-                    } 
-                    else { alert("نەتوانرا بسڕدرێتەوە."); }
-                } catch (e) { alert("کێشە لە پەیوەندی ئینتەرنێت."); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
-            } 
+                    if (result.result === "success") { 
+                        state.activities = state.activities.filter(a => a.id != id); 
+                        render(); 
+                    } 
+                } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
+            } 
+        }
+
+        async function toggleBlock(item, type) {
+            let list = state[type];
+            let newList = list.includes(item) ? list.filter(i => i !== item) : [...list, item];
+            const typeKey = type.charAt(0).toUpperCase() + type.slice(1); 
+
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "updateBlockedList", type: typeKey, list: newList, password: state.adminPassword })
+                });
+                const result = await response.json();
+                if (result.result === "success") {
+                    state[type] = newList;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ activities: state.activities, settings: { BlockedDays: state.blockedDays, BlockedLessons: state.blockedLessons } }));
+                    showNotification("سەرکەوتوو بوو", "لیستەکە نوێ کرایەوە");
+                }
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                render();
+            }
         }
 
         function openReportFor(id) {
             const act = state.activities.find(a => a.id == id);
             if(act) { state.report.teacherName = act.teacherName; state.report.activityName = act.activityName; state.report.date = act.date; state.showReportModal = true; render(); }
         }
-        
-        // فەنکشنی نوێ بۆ گۆڕینی لیستە قەدەغەکراوەکان
-        async function toggleBlock(item, type) {
-            if (!state.isAdminAuthenticated) {
-                alert("تکایە سەرەتا وەک ئەدمین بچۆرە ژوورەوە.");
-                return;
-            }
-            
-            let list = state[type];
-            let newList;
-            const typeKey = type.charAt(0).toUpperCase() + type.slice(1); 
-            
-            if (list.includes(item)) {
-                newList = list.filter(i => i !== item);
-            } else {
-                newList = [...list, item];
-            }
 
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        action: "updateBlockedList", 
-                        type: typeKey, 
-                        list: newList,
-                        password: state.adminPassword
-                    })
-                });
-                const result = await response.json();
-                
-                if (result.result === "success") {
-                    state[type] = newList; // نوێکردنەوەی state تەنها کاتێک سەرکەوتوو بوو
-                    const currentLocalData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"activities": [], "settings": {}}');
-                    currentLocalData.settings = currentLocalData.settings || {};
-                    currentLocalData.settings[typeKey] = newList;
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(currentLocalData));
-                    showNotification("سەرکەوتوو بوو", `لیستی ${type === 'blockedDays' ? 'ڕۆژەکان' : 'وانەکان'} نوێ کرایەوە.`);
-                } else {
-                    alert(`هەڵە لە سێرڤەر: ${result.message || 'نەتوانرا نوێ بکرێتەوە.'}`);
-                }
-            } catch (e) {
-                alert("کێشە لە پەیوەندی ئینتەرنێت. لیستەکە نوێ نەکراوەتەوە.");
-            } finally {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                render();
-            }
-        }
-        
-        // --- Render Functions (دیزاینی نوێ) ---
-
-        function Header() { 
+        function Header() { 
             const themeIcon = state.theme === 'light' ? '🌙' : '☀️';
-            const themeTitle = state.theme === 'light' ? 'دۆخی تاریک' : 'دۆخی ڕوون';
-            
-            // Only show Toggle Button in Teacher View
-            const showToggle = state.currentView === 'teacher';
-
             return `
-            <div class="school-header text-white py-6 px-4 mb-6 md:mb-8 transition-all duration-500">
-                <div class="max-w-6xl mx-auto">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 md:gap-5">
-                            <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg p-2 hover:scale-105 transition-transform duration-300">
-                                <img src="${LOGO_URL}" alt="Logo" class="w-full h-full object-contain">
-                            </div>
-                            <div>
-                                <h1 class="text-xl md:text-3xl font-black drop-shadow-md tracking-tight">قوتابخانەی گزنگ</h1>
-                                <p class="text-blue-100 text-xs md:text-base drop-shadow font-medium opacity-90">سیستەمی چالاکیەکان</p>
-                            </div>
+            <div class="school-header text-white py-6 px-4 mb-6 transition-all duration-500">
+                <div class="max-w-6xl mx-auto flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center p-2 shadow-lg">
+                            <img src="${LOGO_URL}" alt="Logo" class="w-full h-full object-contain">
                         </div>
-                        <div class="flex items-center gap-2">
-                             ${showToggle ? `<button onclick="toggleTheme()" title="${themeTitle}" class="bg-white/20 hover:bg-white/30 w-10 h-10 flex items-center justify-center rounded-xl text-lg backdrop-blur-sm active:scale-95 transition-all border border-white/10 shadow-lg">${themeIcon}</button>` : ''}
-                            ${state.isAdminAuthenticated ? `<button onclick="handleLogout()" class="btn-secondary bg-white/20 hover:bg-white/30 px-3 py-1.5 md:px-5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition backdrop-blur-sm active:scale-95">دەرچوون</button>` : ''}
+                        <div>
+                            <h1 class="text-xl md:text-2xl font-black">قوتابخانەی گزنگ</h1>
+                            <p class="text-blue-100 text-xs md:text-sm font-medium opacity-90">سیستەمی چالاکیەکان</p>
                         </div>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleTheme()" class="bg-white/20 hover:bg-white/30 w-10 h-10 flex items-center justify-center rounded-xl backdrop-blur-sm transition-all shadow-lg">${themeIcon}</button>
+                        ${state.isAdminAuthenticated ? `<button onclick="handleLogout()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold backdrop-blur-sm">دەرچوون</button>` : ''}
+                    </div>
                 </div>
-            </div>`; 
+            </div>`; 
         }
 
-        function Navigation() { 
-            const navClass = state.currentView === 'admin' ? '!bg-slate-900 !border-slate-700' : (state.theme === 'dark' ? '!bg-slate-900 !border-slate-700' : '');
-
+        function Navigation() { 
             return `
             <div class="max-w-6xl mx-auto px-4 mb-8">
-                <div class="bg-white/90 backdrop-blur-md rounded-2xl p-2 flex gap-2 shadow-xl border border-gray-100 overflow-x-auto justify-center sticky top-24 z-30 transition-colors duration-500 ${navClass}">
-                    <button onclick="state.currentView='teacher'; render()" class="btn-secondary w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap ${state.currentView === 'teacher' ? 'active' : ''}">مامۆستا</button>
-                    <button onclick="state.currentView='admin'; render()" class="btn-secondary w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap ${state.currentView === 'admin' ? 'active' : ''}">ئەدمین</button>
-                    <button onclick="window.open('https://gzng-archive.vercel.app/', '_blank')" class="btn-secondary w-full md:w-auto md:px-10 py-3 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap">📂 ئەرشیف</button>
+                <div class="bg-white/90 backdrop-blur-md rounded-2xl p-2 flex gap-2 shadow-xl border border-gray-100 justify-center sticky top-24 z-30 ${state.theme === 'dark' ? '!bg-slate-900 !border-slate-700' : ''}">
+                    <button onclick="state.currentView='teacher'; render()" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs md:text-sm ${state.currentView === 'teacher' ? 'active' : ''}">مامۆستا</button>
+                    <button onclick="state.currentView='admin'; render()" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs md:text-sm ${state.currentView === 'admin' ? 'active' : ''}">ئەدمین</button>
+                    <button onclick="window.open('https://gzng-archive.vercel.app/', '_blank')" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs md:text-sm">📂 ئەرشیف</button>
                 </div>
-            </div>`; 
+            </div>`; 
         }
 
         function renderTeacherView() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
-            const lessons = ['وانەی یەکەم', 'وانەی دووەم', 'وانەی سێیەم', 'وانەی چوارەم', 'وانەی پێنجەم', 'وانەی شەشەم']; 
-            if (!state.viewDay) state.viewDay = 'شەممە';
+            const lessons = ['وانەی یەکەم', 'وانەی دووەم', 'وانەی سێیەم', 'وانەی چوارەم', 'وانەی پێنجەم', 'وانەی شەشەم']; 
             const dailyActivities = state.activities.filter(a => a.dayOfWeek === state.viewDay);
             
-            // لابردنی هێڵی پشکنینی قەدەغەکراو بۆ دیزاین (وەکو داواکارییەکەت)
-
             return `
             <div class="w-full max-w-6xl mx-auto px-4 pb-20">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    
-                    <div class="bg-white rounded-3xl shadow-2xl shadow-blue-100/50 p-6 md:p-10 border border-blue-50 h-fit transition-all duration-300 dark-mode:bg-slate-800 dark-mode:shadow-xl dark-mode:border-slate-700">
-                        <h3 class="font-black text-xl mb-6 border-b pb-3 flex items-center gap-2 text-blue-600 dark-mode:text-blue-400 dark-mode:border-slate-700">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            تۆمارکردنی چالاکی نوێ
-                        </h3>
-                        <div class="space-y-5">
-                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">ناوی مامۆستا</label><input type="text" id="teacherName" oninput="state.form.teacherName = this.value" value="${state.form.teacherName}" class="input-field w-full rounded-2xl px-5 py-3 text-right text-lg font-bold placeholder-gray-400 dark-mode:placeholder-slate-500" placeholder="ناوی خۆت بنووسە..."></div>
-                            
+                    <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-blue-50 h-fit dark-mode:bg-slate-800 dark-mode:border-slate-700">
+                        <h3 class="font-black text-xl mb-6 border-b pb-3 text-blue-600 dark-mode:text-blue-400 dark-mode:border-slate-700">تۆمارکردنی چالاکی نوێ</h3>
+                        <div class="space-y-4">
+                            <div><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">ناوی مامۆستا</label><input type="text" id="teacherName" oninput="state.form.teacherName = this.value" value="${state.form.teacherName}" class="input-field w-full rounded-2xl px-5 py-3 text-right text-lg font-bold" placeholder="ناوی خۆت بنووسە..."></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">ڕۆژ</label>
-                                    <select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value; validateForm(); render()" class="input-field w-full rounded-2xl px-5 py-3 text-right text-lg font-bold cursor-pointer">
-                                        <option value="">هەڵبژێرە...</option>
-                                        ${days.map(d => `<option value="${d}" ${state.form.dayOfWeek === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">دەرس (وانە)</label>
-                                    <select id="lessonNumber" onchange="state.form.lessonNumber = this.value; validateForm(); render()" class="input-field w-full rounded-2xl px-5 py-3 text-center text-lg font-bold cursor-pointer">
-                                        <option value="">هەڵبژێرە...</option>
-                                        ${lessons.map(l => `<option value="${l}" ${state.form.lessonNumber === l ? 'selected' : ''}>${l}</option>`).join('')}
-                                    </select>
-                                </div>
+                                <div><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">ڕۆژ</label><select id="dayOfWeek" onchange="state.form.dayOfWeek = this.value; render()" class="input-field w-full rounded-2xl px-5 py-3 text-right font-bold cursor-pointer"><option value="">هەڵبژێرە</option>${days.map(d => `<option value="${d}" ${state.form.dayOfWeek===d?'selected':''}>${d}</option>`).join('')}</select></div>
+                                <div><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">دەرس</label><select id="lessonNumber" onchange="state.form.lessonNumber = this.value; render()" class="input-field w-full rounded-2xl px-5 py-3 text-right font-bold cursor-pointer"><option value="">هەڵبژێرە</option>${lessons.map(l => `<option value="${l}" ${state.form.lessonNumber===l?'selected':''}>${l}</option>`).join('')}</select></div>
                             </div>
-
-                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">بابەت</label><input type="text" id="subject" oninput="state.form.subject = this.value" value="${state.form.subject}" class="input-field w-full rounded-2xl px-5 py-3 text-right text-lg font-bold" placeholder="بیرکاری..."></div>
-                            <div class="space-y-1"><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">جۆری چالاکی</label><input type="text" id="activityName" oninput="state.form.activityName = this.value" value="${state.form.activityName}" class="input-field w-full rounded-2xl px-5 py-3 text-right text-lg font-bold" placeholder="وانەی نموونەیی..."></div>
-                            
-                            <div class="space-y-1">
-                                <label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">بەروار</label>
-                                <input type="date" id="date" oninput="state.form.date = this.value" value="${state.form.date}" class="input-field w-full rounded-2xl px-5 py-3 text-center text-lg font-bold font-mono cursor-pointer">
-                            </div>
-
-                            <button onclick="handleSubmit()" class="btn-primary w-full font-black py-4 rounded-2xl shadow-xl shadow-blue-500/30 transition-all text-xl mt-6">تۆمارکردن</button>
+                            <div><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">بابەت</label><input type="text" id="subject" oninput="state.form.subject = this.value" value="${state.form.subject}" class="input-field w-full rounded-2xl px-5 py-3 text-right font-bold" placeholder="بابەتەکە لێرە بنووسە..."></div>
+                            <div><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">جۆری چالاکی</label><input type="text" id="activityName" oninput="state.form.activityName = this.value" value="${state.form.activityName}" class="input-field w-full rounded-2xl px-5 py-3 text-right font-bold" placeholder="وانەی نموونەیی، سیمینار..."></div>
+                            <div><label class="text-sm font-bold text-gray-600 dark-mode:text-slate-400">بەروار</label><input type="date" id="date" oninput="state.form.date = this.value" value="${state.form.date}" class="input-field w-full rounded-2xl px-5 py-3 text-center font-bold"></div>
+                            <button onclick="handleSubmit()" class="btn-primary w-full font-black py-4 rounded-2xl shadow-xl text-xl mt-4">تۆمارکردن</button>
                         </div>
                     </div>
-
                     <div>
-                        <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-4" style="-webkit-overflow-scrolling: touch;">
-                            ${days.map(day => `<button onclick="state.viewDay='${day}'; render()" class="flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all whitespace-nowrap btn-secondary ${state.viewDay === day ? 'active' : ''}">${day}</button>`).join('')}
+                        <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-4">
+                            ${days.map(day => `<button onclick="state.viewDay='${day}'; render()" class="flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all btn-secondary ${state.viewDay === day ? 'active' : ''}">${day}</button>`).join('')}
                         </div>
-                        
-                        <div class="space-y-4 min-h-[300px] overflow-y-auto max-h-[700px] pr-1">
+                        <div class="space-y-4">
                             <h3 class="font-black text-xl text-gray-700 dark-mode:text-gray-200">${state.viewDay}</h3>
-                            ${dailyActivities.length === 0 ? 
-                                `<div class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-300 mt-4 dark-mode:bg-slate-800 dark-mode:border-slate-700">
-                                    <p class="text-gray-400 font-bold text-lg">هیچ چالاکیەک بۆ ${state.viewDay} تۆمار نەکراوە</p>
-                                </div>` : 
-                                dailyActivities.map(act => `
-                                <div class="bg-white p-5 rounded-3xl shadow-md border border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between hover:shadow-lg hover:border-blue-400 transition-all duration-200 dark-mode:bg-slate-800 dark-mode:border-slate-700">
-                                    <div class="flex items-start gap-4 mb-3 md:mb-0">
-                                        <div class="px-3 h-10 rounded-full whitespace-nowrap bg-blue-100 flex items-center justify-center text-blue-700 font-black text-xs flex-shrink-0 border border-blue-200 dark-mode:bg-blue-900/50 dark-mode:text-blue-300">
-                                            ${getLessonName(act)}
-                                        </div>
-                                        <div>
-                                            <h4 class="font-black text-base text-gray-800 dark-mode:text-white">${act.teacherName}</h4>
-                                            <p class="text-sm text-gray-500 font-medium mt-1 dark-mode:text-slate-400">${act.subject} - ${act.activityName}</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-xs text-gray-400 font-bold bg-gray-50 px-3 py-1 rounded-full dark-mode:bg-slate-700 dark-mode:text-slate-400">
-                                        📅 ${parseDate(act.date)}
-                                    </div>
-                                </div>
-                                `).join('')}
+                            ${dailyActivities.length === 0 ? `<div class="text-center py-10 bg-white rounded-3xl border-2 border-dashed border-gray-300 dark-mode:bg-slate-800 dark-mode:border-slate-700"><p class="text-gray-400 font-bold">هیچ چالاکیەک بۆ ${state.viewDay} تۆمار نەکراوە</p></div>` : 
+                                dailyActivities.map(act => `<div class="bg-white p-5 rounded-3xl shadow-md border border-gray-100 flex justify-between items-center dark-mode:bg-slate-800 dark-mode:border-slate-700">
+                                    <div><h4 class="font-black text-base text-gray-800 dark-mode:text-white">${act.teacherName}</h4><p class="text-sm text-gray-500 font-medium">${act.subject} - ${act.activityName}</p></div>
+                                    <div class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-black text-xs border border-blue-200">${getLessonName(act)}</div>
+                                </div>`).join('')}
                         </div>
                     </div>
-
                 </div>
             </div>`;
         }
 
         function renderAdminLogin() {
-            return `
-            <div class="max-w-md mx-auto px-4 mt-20">
-                <div class="admin-card rounded-3xl p-10 text-center relative overflow-hidden border-2 border-purple-500/30">
-                    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-transparent opacity-50"></div>
-                    
-                    <h2 class="text-3xl font-black text-white mb-10 tracking-wide drop-shadow-lg relative z-10">🛡️ چوونەژوورەوەی ئەدمین</h2>
-                    <div class="space-y-6 relative z-10">
-                        <input type="text" id="username" placeholder="ناوی بەکارهێنەر" class="input-field admin-input w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all bg-slate-800 border-slate-700 text-white placeholder-slate-500">
-                        <input type="password" id="password" placeholder="وشەی نهێنی" class="input-field admin-input w-full rounded-2xl px-5 py-4 text-center font-bold text-lg outline-none transition-all bg-slate-800 border-slate-700 text-white placeholder-slate-500">
-                        <button onclick="handleLogin()" class="w-full py-4 rounded-2xl font-black text-xl shadow-2xl bg-purple-600 hover:bg-purple-700 transition-all shadow-purple-500/40">چوونەژوورەوە</button>
-                    </div>
-                </div>
-            </div>`;
+            return `<div class="max-w-md mx-auto px-4 mt-20"><div class="admin-card rounded-3xl p-10 text-center border-2 border-purple-500/30"><h2 class="text-3xl font-black text-white mb-10">🛡️ ئەدمین</h2><div class="space-y-6"><input type="text" id="username" placeholder="ناوی بەکارهێنەر" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg bg-slate-800 border-slate-700 text-white"><input type="password" id="password" placeholder="وشەی نهێنی" class="input-field w-full rounded-2xl px-5 py-4 text-center font-bold text-lg bg-slate-800 border-slate-700 text-white"><button onclick="handleLogin()" class="w-full py-4 rounded-2xl font-black text-xl bg-purple-600 hover:bg-purple-700 transition-all text-white">چوونەژوورەوە</button></div></div></div>`;
         }
-        
+
         function renderAdminSettings() {
             const days = ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە', 'هەینی'];
             const lessons = ['وانەی یەکەم', 'وانەی دووەم', 'وانەی سێیەم', 'وانەی چوارەم', 'وانەی پێنجەم', 'وانەی شەشەم'];
             
             const renderList = (list, type) => list.map(item => `
-                <button onclick="toggleBlock('${item}', '${type}')" class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap active:scale-95 border-2 ${state[type].includes(item) ? 'bg-red-700 text-white shadow-red-500/30 border-red-600' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600'}">
+                <button onclick="toggleBlock('${item}', '${type}')" class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 ${state[type].includes(item) ? 'bg-red-700 text-white border-red-600' : 'bg-slate-700 text-slate-300 border-slate-600'}">
                     ${item} ${state[type].includes(item) ? '⛔' : '✅'}
                 </button>
             `).join('');
             
-            return `
-            <div class="admin-card p-8 rounded-3xl mb-8 border-2 border-purple-500/20 shadow-purple-900/30">
-                <h3 class="font-black text-white text-2xl mb-5 border-b border-slate-700 pb-3 flex items-center gap-3 text-purple-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317C10.631 4.062 10.99 4 11.375 4h1.25c.385 0 .744.062 1.05.317l2.872 2.112A2.007 2.007 0 0017 6.002V8m-6 8h.01M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    ڕێکخستنەکانی قەدەغەکردن
-                </h3>
-                
-                <div class="mb-6 bg-slate-800/70 p-4 rounded-xl border border-slate-700">
-                    <label class="block font-bold text-slate-300 mb-3 text-lg">📅 ڕۆژە قەدەغەکراوەکان:</label>
-                    <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">${renderList(days, 'blockedDays')}</div>
-                    <p class="text-xs text-slate-400 mt-3">کلیک بکە بۆ قەدەغەکردن یان لابردنی قەدەغەکردن.</p>
-                </div>
-                
-                <div class="bg-slate-800/70 p-4 rounded-xl border border-slate-700">
-                    <label class="block font-bold text-slate-300 mb-3 text-lg">⏱️ وانە قەدەغەکراوەکان:</label>
-                    <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">${renderList(lessons, 'blockedLessons')}</div>
-                    <p class="text-xs text-slate-400 mt-3">کلیک بکە بۆ قەدەغەکردن یان لابردنی قەدەغەکردن.</p>
-                </div>
-            </div>
-            `;
+            return `<div class="admin-card p-8 rounded-3xl mb-8 border-2 border-purple-500/20 shadow-purple-900/30"><h3 class="font-black text-purple-400 text-2xl mb-5 border-b border-slate-700 pb-3">ڕێکخستنەکانی قەدەغەکردن</h3><div class="mb-6"><label class="block font-bold text-slate-300 mb-3">📅 ڕۆژە قەدەغەکراوەکان:</label><div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">${renderList(days, 'blockedDays')}</div></div><div><label class="block font-bold text-slate-300 mb-3">⏱️ وانە قەدەغەکراوەکان:</label><div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">${renderList(lessons, 'blockedLessons')}</div></div></div>`;
         }
 
-        function renderAdminView() { 
-            const sorted = [...state.activities].sort((a, b) => {
-                const dateA = parseDate(a.date);
-                const dateB = parseDate(b.date);
-                return dateA.localeCompare(dateB); 
-            }).reverse(); // بۆ ئەوەی نوێترین لەسەرەوە بێت
-
+        function renderAdminView() { 
+            const sorted = [...state.activities].reverse();
             return `
             <div class="max-w-6xl mx-auto px-4 pb-20">
                 ${renderAdminSettings()}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                    <button onclick="state.showReportModal=true; render()" class="admin-card p-6 rounded-3xl hover:bg-slate-800 transition group relative overflow-hidden text-center border-2 border-cyan-500/20">
-                        <div class="text-5xl mb-3 text-cyan-400">📸</div>
-                        <div class="font-black text-white text-lg group-hover:text-cyan-300 transition">ڕاپۆرتی وێنەیی</div>
-                    </button>
-                    <button onclick="state.showMonthModal=true; render()" class="admin-card p-6 rounded-3xl hover:bg-slate-800 transition group relative overflow-hidden text-center border-2 border-blue-500/20">
-                        <div class="text-5xl mb-3 text-blue-400">📅</div>
-                        <div class="font-black text-white text-lg group-hover:text-blue-300 transition">خشتەی مانگ</div>
-                    </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <button onclick="state.showReportModal=true; render()" class="admin-card p-5 rounded-2xl border-2 border-cyan-500/30 text-white text-base font-black transition hover:scale-[1.02] active:scale-95 bg-gradient-to-br from-cyan-600/20 to-transparent">📸 ڕاپۆرتی وێنەیی</button>
+                    <button onclick="state.adminReportType='year'; state.showMonthModal=true; render()" class="admin-card p-5 rounded-2xl border-2 border-orange-500/30 text-white text-base font-black transition hover:scale-[1.02] active:scale-95 bg-gradient-to-br from-orange-600/20 to-transparent">📅 ڕاپۆرتی ساڵانە</button>
+                    <button onclick="state.adminReportType='month'; state.showMonthModal=true; render()" class="admin-card p-5 rounded-2xl border-2 border-blue-500/30 text-white text-base font-black transition hover:scale-[1.02] active:scale-95 bg-gradient-to-br from-blue-600/20 to-transparent">📆 ڕاپۆرتی مانگانە</button>
+                    <button onclick="state.adminReportType='week'; state.showMonthModal=true; render()" class="admin-card p-5 rounded-2xl border-2 border-green-500/30 text-white text-base font-black transition hover:scale-[1.02] active:scale-95 bg-gradient-to-br from-green-600/20 to-transparent">📉 ڕاپۆرتی هەفتانە</button>
                 </div>
 
-                <div class="admin-card rounded-3xl overflow-hidden min-h-[500px]">
-                    <div class="p-6 border-b border-slate-700 bg-slate-800/50 flex justify-between items-center backdrop-blur-md sticky top-40 z-30">
+                <div class="admin-card rounded-3xl overflow-hidden shadow-2xl">
+                    <div class="p-6 border-b border-slate-700 bg-slate-800/50 flex justify-between items-center">
                         <span class="font-black text-white text-lg tracking-wide">هەموو چالاکیەکان</span>
                         <span class="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg shadow-purple-500/30">${sorted.length}</span>
                     </div>
                     <div class="divide-y divide-slate-700/50">
-                        ${sorted.map(a => `
-                        <div class="p-5 flex justify-between items-center hover:bg-slate-800/80 transition duration-300 group">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700 flex-shrink-0">
-                                    <span class="text-xl text-purple-400">👤</span>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-white text-base mb-1 group-hover:text-purple-300 transition">${a.teacherName}</div>
-                                    <div class="text-xs text-slate-400 font-bold flex flex-wrap gap-2">
-                                        <span class="bg-slate-700 px-2 py-0.5 rounded">${a.dayOfWeek}</span>
-                                        <span class="bg-slate-700 px-2 py-0.5 rounded text-cyan-400">${parseDate(a.date)}</span>
-                                        <span class="bg-slate-700 px-2 py-0.5 rounded text-blue-400">${getLessonName(a)}</span>
-                                    </div>
-                                    <div class="text-sm text-slate-300 mt-2 font-medium opacity-80">${a.subject} - ${a.activityName}</div>
-                                </div>
-                            </div>
-                            <div class="flex gap-3 flex-shrink-0">
-                                <button onclick="openReportFor(${a.id})" class="text-cyan-400 bg-cyan-400/10 p-3 rounded-xl hover:bg-cyan-400/20 hover:scale-105 transition border border-cyan-400/20" title="ڕاپۆرتی وێنەیی"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
-                                <button onclick="deleteActivity(${a.id})" class="text-rose-500 bg-rose-500/10 p-3 rounded-xl hover:bg-rose-500/20 hover:scale-105 transition border border-rose-500/20" title="سڕینەوە"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                            </div>
-                        </div>`).join('')}
+                        ${sorted.map(a => `<div class="p-5 flex justify-between items-center hover:bg-slate-800/80 transition duration-300 group"><div class="text-white"><div class="font-bold text-base mb-1 group-hover:text-purple-300 transition">${a.teacherName}</div><div class="text-xs text-slate-400 font-bold"><span class="bg-slate-700 px-2 py-0.5 rounded mr-1">${a.dayOfWeek}</span> <span class="bg-slate-700 px-2 py-0.5 rounded text-cyan-400">${parseDate(a.date)}</span></div><div class="text-sm text-slate-300 mt-2 font-medium opacity-80">${a.subject} - ${a.activityName}</div></div><div class="flex gap-3"><button onclick="openReportFor(${a.id})" class="text-cyan-400 bg-cyan-400/10 p-2.5 rounded-xl hover:bg-cyan-400/20 transition">📸</button><button onclick="deleteActivity(${a.id})" class="text-rose-500 bg-rose-500/10 p-2.5 rounded-xl hover:bg-rose-500/20 transition">🗑️</button></div></div>`).join('')}
                     </div>
                 </div>
             </div>`;
         }
-        
-        // Modal Functions (Report and Month) - گۆڕانکاری کەمی تێدایە بۆ CSS
+
         function renderReportModal() {
-            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/95 z-50 overflow-y-auto py-4 md:py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-3 md:p-4 rounded-xl shadow-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print mx-4 dark-mode:bg-slate-800 dark-mode:border-slate-700"><div class="flex items-center gap-4 w-full md:w-auto justify-between"><h3 class="font-bold text-lg text-gray-800 dark-mode:text-white">ڕێکخستنی وێنەکان</h3><div class="flex items-center gap-2 text-sm bg-gray-100 rounded-lg p-1 dark-mode:bg-slate-700"><button onclick="state.report.orientation='landscape'; render()" class="px-3 py-1 rounded-md transition ${state.report.orientation==='landscape'?'bg-blue-500 shadow text-white font-bold':'bg-white text-gray-800 dark-mode:bg-slate-800 dark-mode:text-slate-300'}">Landscape</button><button onclick="state.report.orientation='portrait'; render()" class="px-3 py-1 rounded-md transition ${state.report.orientation==='portrait'?'bg-blue-500 shadow text-white font-bold':'bg-white text-gray-800 dark-mode:bg-slate-800 dark-mode:text-slate-300'}">Portrait</button></div></div><div class="flex gap-2 w-full md:w-auto"><button id="dl-btn" onclick="downloadElementAsImage('report-content', 'Activity_Report.jpg')" class="btn-primary px-6 py-2 rounded-xl font-bold flex-1 md:flex-none justify-center flex">دابەزاندن (JPG)</button><button onclick="state.showReportModal=false; render()" class="btn-secondary bg-gray-100 text-gray-600 px-4 py-2 rounded-xl font-bold hover:bg-gray-200 transition">داخستن</button></div></div><div class="report-wrapper"><div id="report-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center border border-gray-100 p-1"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl md:text-3xl font-black mb-1">قوتابخانەی گزنگ</h1><h2 class="text-lg md:text-xl text-blue-600 font-bold">ڕاپۆرتی چالاکی</h2></div><div class="text-left text-sm text-gray-600"><p><strong>بەروار:</strong> <input type="text" value="${parseDate(state.report.date)}" class="bg-transparent border-none text-left w-24 font-bold"></p><p><strong>مامۆستا:</strong> ${state.report.teacherName}</p></div></div><div class="mb-6 text-center"><input type="text" value="${state.report.activityName}" class="text-xl md:text-2xl font-black text-center w-full bg-transparent border-none outline-none text-gray-800 placeholder-gray-300" placeholder="ناوی چالاکی لێرە بنووسە..."></div><div class="grid grid-cols-2 gap-4 flex-1">${state.report.images.map((img, i) => `<div class="relative group"><div class="image-slot w-full bg-gray-100 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 ${state.report.orientation === 'landscape' ? 'ar-landscape' : 'ar-portrait'}" onmousedown="startDrag(event, ${i})" ontouchstart="startDrag(event, ${i})">${img ? `<img id="rep-img-${i}" src="${img}" class="w-full h-full object-cover pointer-events-none absolute left-0 top-0" style="transform: scale(${state.report.imgSettings[i].zoom}); object-position: ${state.report.imgSettings[i].x}% ${state.report.imgSettings[i].y}%">` : `<label class="cursor-pointer w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition"><span class="text-4xl mb-2">+</span><span class="text-xs font-bold">وێنە دابنێ</span><input type="file" accept="image/*" class="hidden" onchange="handleImage(this, ${i})"></label>`}</div>${img ? `<div class="img-controls rounded-b-xl"><div class="flex items-center gap-2 text-white text-xs font-bold px-2 py-1"><span>زوم:</span><input type="range" min="1" max="3" step="0.1" value="${state.report.imgSettings[i].zoom}" oninput="updateImg(${i}, 'zoom', this.value)" class="flex-1 h-1 bg-gray-500 rounded-lg appearance-none cursor-pointer"></div><div class="flex gap-2 p-1"><button onclick="state.report.images[${i}]=null; render()" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs py-1 rounded">سڕینەوە</button></div></div>` : ''}</div>`).join('')}</div><div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ئامادەکردنی: ${state.report.teacherName}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
+            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/95 z-50 overflow-y-auto py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-4 rounded-xl shadow-lg mb-6 flex justify-between items-center mx-4 no-print"><div class="flex items-center gap-4"><h3 class="font-bold">ڕێکخستنی وێنەکان</h3><div class="flex bg-gray-100 rounded-lg p-1"><button onclick="state.report.orientation='landscape'; render()" class="px-3 py-1 rounded-md ${state.report.orientation==='landscape'?'bg-blue-500 text-white font-bold':'text-gray-600'}">Landscape</button><button onclick="state.report.orientation='portrait'; render()" class="px-3 py-1 rounded-md ${state.report.orientation==='portrait'?'bg-blue-500 text-white font-bold':'text-gray-600'}">Portrait</button></div></div><div class="flex gap-2"><button onclick="downloadElementAsImage('report-content', 'Activity_Report.jpg')" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">دابەزاندن (JPG)</button><button onclick="state.showReportModal=false; render()" class="bg-gray-100 px-4 py-2 rounded-xl font-bold">داخستن</button></div></div><div class="report-wrapper"><div id="report-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><img src="${LOGO_URL}" class="w-20 h-20 object-contain"><div class="text-center"><h1 class="text-2xl font-black">قوتابخانەی گزنگ</h1><h2 class="text-blue-600 font-bold">ڕاپۆرتی چالاکی</h2></div><div class="text-left text-sm text-gray-600"><p>بەروار: ${parseDate(state.report.date)}</p><p>مامۆستا: ${state.report.teacherName}</p></div></div><div class="mb-4 text-center text-xl font-bold text-gray-800">${state.report.activityName}</div><div class="grid grid-cols-2 gap-4 flex-1">${state.report.images.map((img, i) => `<div class="relative"><div class="image-slot w-full bg-gray-100 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 ${state.report.orientation === 'landscape' ? 'ar-landscape' : 'ar-portrait'}" onmousedown="startDrag(event, ${i})" ontouchstart="startDrag(event, ${i})">${img ? `<img id="rep-img-${i}" src="${img}" class="w-full h-full object-cover pointer-events-none absolute left-0 top-0" style="transform: scale(${state.report.imgSettings[i].zoom}); object-position: ${state.report.imgSettings[i].x}% ${state.report.imgSettings[i].y}%">` : `<label class="cursor-pointer w-full h-full flex flex-col items-center justify-center text-gray-400"><span class="text-4xl">+</span><span class="text-xs font-bold">وێنە دابنێ</span><input type="file" accept="image/*" class="hidden" onchange="handleImage(this, ${i})"></label>`}</div>${img ? `<div class="img-controls flex flex-col gap-1 rounded-b-xl"><div class="flex items-center gap-1 text-[10px] text-white"><span>زوم:</span><input type="range" min="1" max="3" step="0.1" value="${state.report.imgSettings[i].zoom}" oninput="updateImg(${i}, 'zoom', this.value)" class="flex-1 h-1"></div><button onclick="state.report.images[${i}]=null; render()" class="bg-red-500 text-white text-[10px] py-1 rounded">سڕینەوە</button></div>` : ''}</div>`).join('')}</div><div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600"><span>ئامادەکردنی: ${state.report.teacherName}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
         }
 
         function renderMonthModal() {
-            const monthlyActivities = state.activities.filter(a => {
-                if (!a.date) return false;
-                if (String(a.date).includes(state.filterDate)) return true;
-                try {
-                    let d = new Date(a.date);
-                    if (isNaN(d.getTime())) return false; 
-                    let y = d.getFullYear();
-                    let m = String(d.getMonth() + 1).padStart(2, '0');
-                    return `${y}-${m}` === state.filterDate;
-                } catch(e) { return false; }
-            });
+            let filtered = [];
+            let title = "";
+            let selectionUI = "";
 
-            const sorted = monthlyActivities.sort((a, b) => { const dateA = parseDate(a.date); const dateB = parseDate(b.date); return dateA.localeCompare(dateB); });
+            if (state.adminReportType === 'year') {
+                const targetYear = state.filterDate.split('-')[0];
+                filtered = state.activities.filter(a => parseDate(a.date).startsWith(targetYear));
+                title = `ڕاپۆرتی چالاکیەکانی ساڵی ${targetYear}`;
+                selectionUI = `
+                    <div class="flex items-center gap-3 bg-orange-50 p-2 rounded-xl border border-orange-100">
+                        <span class="text-sm font-black text-orange-700">ساڵ:</span>
+                        <input type="number" min="2000" max="2100" value="${targetYear}" 
+                            onchange="state.filterDate = this.value + '-01'; render()" 
+                            class="bg-white border-none rounded-lg p-1.5 font-bold text-orange-800 shadow-inner w-24 text-center">
+                    </div>`;
+            } else if (state.adminReportType === 'month') {
+                filtered = state.activities.filter(a => parseDate(a.date).includes(state.filterDate));
+                title = `ڕاپۆرتی چالاکیەکانی مانگی ${state.filterDate}`;
+                selectionUI = `
+                    <div class="flex items-center gap-3 bg-blue-50 p-2 rounded-xl border border-blue-100">
+                        <span class="text-sm font-black text-blue-700">مانگ:</span>
+                        <input type="month" value="${state.filterDate}" 
+                            onchange="state.filterDate = this.value; render()" 
+                            class="bg-white border-none rounded-lg p-1.5 font-bold text-blue-800 shadow-inner">
+                    </div>`;
+            } else if (state.adminReportType === 'week') {
+                const start = new Date(state.weekStartDate);
+                const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+                filtered = state.activities.filter(a => {
+                    const d = new Date(parseDate(a.date));
+                    return d >= start && d < end;
+                });
+                title = `ڕاپۆرتی هەفتانە (${state.weekStartDate})`;
+                selectionUI = `
+                    <div class="flex items-center gap-3 bg-green-50 p-2 rounded-xl border border-green-100">
+                        <span class="text-sm font-black text-green-700">دەسپێکی هەفتە:</span>
+                        <input type="date" value="${state.weekStartDate}" 
+                            onchange="state.weekStartDate = this.value; render()" 
+                            class="bg-white border-none rounded-lg p-1.5 font-bold text-green-800 shadow-inner">
+                    </div>`;
+            }
 
-            return `<div id="reportModal" class="fixed inset-0 bg-gray-900/95 z-50 overflow-y-auto py-4 md:py-10 flex justify-center items-start"><div class="w-full mx-auto pb-10" style="max-width: 210mm;"><div class="bg-white p-3 md:p-4 rounded-xl shadow-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print mx-4 dark-mode:bg-slate-800 dark-mode:border-slate-700"><div class="flex items-center gap-4 w-full md:w-auto justify-between"><h3 class="font-bold text-lg text-gray-800 dark-mode:text-white">خشتەی مانگ:</h3><input type="month" value="${state.filterDate}" onchange="state.filterDate = this.value; render()" class="border border-gray-300 rounded-lg px-2 py-1 text-sm font-bold bg-gray-50 dark-mode:bg-slate-700 dark-mode:text-white"></div><div class="flex gap-2 w-full md:w-auto"><button id="month-dl-btn" onclick="downloadElementAsImage('monthly-table-content', 'Monthly_Report.jpg')" class="btn-primary bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-orange-600 flex-1 md:flex-none justify-center flex">دابەزاندن (JPG)</button><button onclick="state.showMonthModal=false; render()" class="btn-secondary bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-red-200">داخستن</button></div></div><div class="report-wrapper"><div id="monthly-table-content" class="a4-page bg-white flex flex-col mx-auto"><div class="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-6"><div class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center border border-gray-100 p-1"><img src="${LOGO_URL}" class="w-full h-full object-contain"></div><div class="text-center"><h1 class="text-2xl md:text-3xl font-black mb-1">قوتابخانەی گزنگ</h1><h2 class="text-lg md:text-xl text-blue-600 font-bold">لیستی چالاکیەکانی مانگ</h2></div><div class="text-left text-sm text-gray-600"><p><strong>بەروار:</strong> ${state.filterDate}</p></div></div>${sorted.length === 0 ? `<div class="text-center text-gray-400 py-10 border-2 border-dashed rounded-xl bg-gray-50">هیچ چالاکیەک لەم مانگەدا نییە</div>` : `<div class="overflow-hidden rounded-lg border border-gray-200"><table class="report-table w-full"><thead><tr><th class="w-10 text-center">#</th><th>ناوی مامۆستا</th><th>ڕۆژ</th><th>بەروار</th><th>دەرس</th><th>بابەت</th><th>جۆری چالاکی</th></tr></thead><tbody class="text-sm">${sorted.map((a, i) => `<tr><td class="font-bold text-center text-gray-500">${i + 1}</td><td class="font-bold text-gray-800">${a.teacherName}</td><td>${a.dayOfWeek}</td><td>${parseDate(a.date)}</td><td>${getLessonName(a)}</td><td>${a.subject}</td><td>${a.activityName}</td></tr>`).join('')}</tbody></table></div>`}<div class="mt-auto pt-8 border-t flex justify-between text-sm text-gray-600 px-4"><span>ژمارەی چالاکی: ${sorted.length}</span><span>واژۆی بەڕێوەبەر</span></div></div></div></div></div>`;
+            filtered.sort((a,b) => parseDate(a.date).localeCompare(parseDate(b.date)));
+
+            return `
+            <div id="reportModal" class="fixed inset-0 bg-gray-900/95 z-50 overflow-y-auto py-6 md:py-10 flex justify-center items-start">
+                <div class="w-full mx-auto pb-10" style="max-width: 210mm;">
+                    <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-2xl mb-6 flex flex-col md:flex-row justify-between items-center gap-4 mx-4 no-print border border-white/20">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-gray-400 mr-2 uppercase tracking-widest">کات دیاری بکە:</span>
+                            ${selectionUI}
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button onclick="downloadElementAsImage('monthly-table-content', 'Gzng_${state.adminReportType}_${state.filterDate}.jpg')" 
+                                class="btn-primary px-8 py-3 rounded-2xl font-black text-sm flex-1 md:flex-none shadow-lg shadow-blue-500/30">داگرتنی وێنە (JPG)</button>
+                            <button onclick="state.showMonthModal=false; render()" 
+                                class="bg-gray-100 text-gray-500 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-red-50 hover:text-red-500 transition-all border border-gray-200">داخستن</button>
+                        </div>
+                    </div>
+                    <div class="report-wrapper">
+                        <div id="monthly-table-content" class="a4-page bg-white flex flex-col mx-auto border-[10px] border-white">
+                            <div class="flex justify-between items-center border-b-4 border-blue-900 pb-5 mb-8">
+                                <img src="${LOGO_URL}" class="w-24 h-24 object-contain">
+                                <div class="text-center">
+                                    <h1 class="text-3xl font-black text-blue-900 mb-1">قوتابخانەی گزنگ</h1>
+                                    <h2 class="text-lg text-gray-600 font-bold">${title}</h2>
+                                </div>
+                                <div class="text-left text-sm text-blue-900/60 font-mono">
+                                    <p class="font-bold">IQ - Kurdistan</p>
+                                    <p>${new Date().toLocaleDateString('ku-IQ')}</p>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <table class="report-table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="w-8">#</th>
+                                            <th>ناوی مامۆستا</th>
+                                            <th class="w-24">بەروار / ڕۆژ</th>
+                                            <th class="w-20">وانە</th>
+                                            <th>بابەت</th>
+                                            <th>جۆری چالاکی</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${filtered.length === 0 ? `<tr><td colspan="6" class="py-20 text-gray-300 italic font-bold">هیچ چالاکیەک بۆ ئەم کاتە تۆمار نەکراوە</td></tr>` : 
+                                            filtered.map((a, i) => `<tr>
+                                                <td class="bg-gray-50 font-black text-gray-400">${i+1}</td>
+                                                <td class="font-black text-gray-800 text-base">${a.teacherName}</td>
+                                                <td><div class="font-bold text-blue-700">${parseDate(a.date)}</div><div class="text-[11px] text-gray-500 font-bold">${a.dayOfWeek}</div></td>
+                                                <td class="font-bold text-gray-600">${getLessonName(a)}</td>
+                                                <td class="font-medium">${a.subject}</td>
+                                                <td class="text-blue-900 font-black">${a.activityName}</td>
+                                            </tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-10 pt-8 border-t-2 border-dashed border-gray-200 flex justify-between items-end px-10">
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-400 font-bold mb-1">کۆی گشتی چالاکیەکان</p>
+                                    <p class="text-2xl font-black text-blue-600">${filtered.length} چالاکی</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="font-black text-gray-800 mb-16 text-lg">واژۆی بەڕێوەبەر</p>
+                                    <div class="w-40 h-0.5 bg-gray-200"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
         }
 
-        function parseDate(dateStr) {
-            if(!dateStr) return "";
-            return String(dateStr).replace(/['"]/g, '').trim();
-        }
+        function parseDate(dateStr) { return dateStr ? String(dateStr).replace(/['"]/g, '').trim() : ""; }
 
-        function render() { 
-            const activeId = document.activeElement ? document.activeElement.id : null;
-            const app = document.getElementById('app'); 
-            
-            // RESET Classes first
+        function render() { 
+            const app = document.getElementById('app'); 
             document.body.classList.remove('dark-mode', 'admin-mode');
+            if (state.currentView === 'admin') document.body.classList.add('admin-mode');
+            else if (state.theme === 'dark') document.body.classList.add('dark-mode');
 
-            // Apply Classes Logic
-            if (state.currentView === 'admin') {
-                document.body.classList.add('admin-mode'); // Force Admin Dark Mode
-            } else {
-                // Teacher View - Respect User Preference
-                if (state.theme === 'dark') {
-                    document.body.classList.add('dark-mode');
-                }
-            }
-
-            let content = ''; 
-            if(state.showReportModal) content = renderReportModal(); 
-            else if(state.showMonthModal) content = renderMonthModal(); 
-            else if(state.currentView === 'admin' && !state.isAdminAuthenticated) content = renderAdminLogin(); 
-            else if(state.currentView === 'admin') content = renderAdminView(); 
-            else content = renderTeacherView(); 
-            app.innerHTML = `${!state.showReportModal && !state.showMonthModal ? Header() : ''}${!state.showReportModal && !state.showMonthModal ? Navigation() : ''}${content}`; 
+            let content = ''; 
+            if(state.showReportModal) content = renderReportModal(); 
+            else if(state.showMonthModal) content = renderMonthModal(); 
+            else if(state.currentView === 'admin' && !state.isAdminAuthenticated) content = renderAdminLogin(); 
+            else if(state.currentView === 'admin') content = renderAdminView(); 
+            else content = renderTeacherView(); 
             
-            attachEvents(); 
-            if(state.showReportModal || state.showMonthModal) { setTimeout(calculateScale, 50); }
-            if(activeId && document.getElementById(activeId)) { 
-                const el = document.getElementById(activeId); 
-                if (el.tagName === 'INPUT' || el.tagName === 'SELECT') { 
-                    el.focus(); 
-                    if(el.value) el.setSelectionRange(el.value.length, el.value.length); 
-                }
-            }
+            app.innerHTML = `${!state.showReportModal && !state.showMonthModal ? Header() : ''}${!state.showReportModal && !state.showMonthModal ? Navigation() : ''}${content}`; 
+            attachEvents(); 
+            if(state.showReportModal || state.showMonthModal) setTimeout(calculateScale, 50);
         }
 
-        function attachEvents() { 
-            ['username','password','teacherName','subject','activityName','dayOfWeek','lessonNumber','date'].forEach(id => { 
-                const el = document.getElementById(id); 
-                if(el && el.tagName === 'INPUT') { 
-                    el.oninput = (e) => { 
-                        if(id in state.form) state.form[id] = e.target.value; 
-                        if(id in state.login) state.login[id] = e.target.value; 
-                    }; 
-                }
-            }); 
-            // بۆ Drag/Move لە ڕاپۆرت
+        function attachEvents() { 
             document.addEventListener('mousemove', onMove);
             document.addEventListener('touchmove', onMove, { passive: false });
         }
 
         loadActivities();
-        window.addEventListener('online', () => updateStatus('online'));
-        window.addEventListener('offline', () => updateStatus('offline'));
-        document.addEventListener('touchmove', function(e) { if(e.scale !== 1) { e.preventDefault(); } }, { passive: false });
     </script>
 </body>
 </html>
-
-
-
